@@ -255,6 +255,7 @@ class Feeder:
                     success = self._kuksa_client.update_datapoint(target, value)
                     if success:
                         log.debug("Succeeded sending DataPoint(%s, %s, %f)", target, value, vss_observation.time)
+                        print("Updated: Datapoint(%s, %s)", target, value)
                         # Give status message after 1, 2, 4, 8, 16, 32, 64, .... messages have been sent
                         messages_sent += 1
                         if messages_sent >= (2 * last_sent_log_entry):
@@ -267,7 +268,7 @@ class Feeder:
             except queue.Empty:
                 pass
             except Exception:
-                log.error("Exception caught in main loop", exc_info=True)
+                log.error("Exception caugt in main loop", exc_info=True)
 
     async def _vss_update(self, updates: List[EntryUpdate]):
         if self._mapper is None:
@@ -394,7 +395,6 @@ def _get_kuksa_val_client(command_line_parser: argparse.Namespace,
         path = config.get(CONFIG_SECTION_GENERAL, CONFIG_OPTION_ROOT_CA_PATH)
         client.set_root_ca_path(path)
     elif client.get_tls():
-        # We do not want to rely on kuksa-client default
         log.error("Root CA must be given when using TLS")
 
     if config.has_option(CONFIG_SECTION_GENERAL, CONFIG_OPTION_TLS_SERVER_NAME):

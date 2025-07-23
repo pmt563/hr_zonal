@@ -54,8 +54,8 @@ COPY ./*.dbc ./candump*.log ./*.json ./
 # Debian 12 is bookworm, so the glibc version matches. Distroless is a lot smaller than
 # Debian slim versions
 # For development add :debug like this
-# FROM gcr.io/distroless/base-debian12:debug  to get a busybox shell as well
-FROM gcr.io/distroless/base-debian12
+FROM gcr.io/distroless/base-debian12:debug
+#FROM gcr.io/distroless/base-debian12
 
 WORKDIR /dist
 
@@ -71,7 +71,7 @@ ENV PATH="/dist:$PATH"
 ENV LOG_LEVEL="info"
 
 # Vehicle Data Broker host:port
-#ENV VDB_ADDRESS="localhost:55555"
+ENV VDB_ADDRESS="localhost:55555"
 # Override VDB_ADDRESS port if set
 #ENV DAPR_GRPC_PORT="55555"
 # VDB DAPR APP ID

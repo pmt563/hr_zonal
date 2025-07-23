@@ -60,3 +60,16 @@ class CANClient:
                 log.debug("Sent message [channel: %s]: %s", self._bus.channel_info, msg)
         except can.CanError:
             log.error("Failed to send message via CAN bus")
+
+
+'''
+Step to use:
+1. Init
+can_client = CANClient(vcan0)
+2. Receive -> return canmessage.CANMessage or None
+can_client.recv(timeout=<value>)
+3. Send
+can_client.send(arbitration_id=<arb_id>, data=<data_val>)
+4. Stop
+can_client.stop
+'''

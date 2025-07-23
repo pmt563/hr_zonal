@@ -92,6 +92,7 @@ class CanReader(ABC):
     def _process_can_message(self, frame_id: int, data: Any):
         try:
             message_def = self._mapper.get_message_by_frame_id(frame_id)
+            log.info("Processing CAN message with frame ID: %#x", frame_id)
             if message_def is not None:
                 decode = message_def.decode(bytes(data), allow_truncated=True, decode_containers=True)
                 if log.isEnabledFor(logging.DEBUG):
@@ -114,6 +115,12 @@ class CanReader(ABC):
     def _handle_decoded_frame(self, message_def: cantools.database.Message, decoded: SignalMappingType, rx_time: float):
         for signal_name, raw_value in decoded.items():  # type: ignore
             signal: cantools.database.Signal = message_def.get_signal_by_name(signal_name)
+            # LOGS WHEN DEVELOPMENT PHASE
+            log.info(
+                "Received CAN message: CAN ID=%#x, Signal Index=%s, Signal Name=%s, Raw Value=%s",
+                message_def.frame_id, signal.start, signal_name, raw_value
+            )
+
             if isinstance(raw_value, (int, float)):
                 # filter out signals with values out of defined range
                 # which is usually because the signal's value is unavailable

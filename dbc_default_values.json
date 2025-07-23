@@ -18,5 +18,8 @@
   "VCLEFT_rearIntSwitchPressed" : 0,
   "VCLEFT_rearLatchStatus" : 0,
   "VCLEFT_rearLatchSwitch" : 0,
-  "VCLEFT_rearRelActuatorSwitch" : 0
+  "VCLEFT_rearRelActuatorSwitch" : 0,
+  "VCFRONT_crashState"  : 0,
+  "DI_tractionControlModeUI" : 0,
+  "VCFRONT_hpCabinLoadType" : 1
 }
