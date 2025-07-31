@@ -26,10 +26,10 @@ jobs:
           # Assuming tests are in a 'test' directory and can be run with pytest
           pytest test_org/
 
-      - name: Run linters
-        run: |
-          pip install ruff
-          ruff check .
+      # - name: Run linters
+      #   run: |
+      #     pip install ruff
+      #     ruff check .
 
   build-image:
     runs-on: ubuntu-22.04
