@@ -39,9 +39,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # cached layers as much as possible
 
 COPY . /
+COPY ./dbcfeederlib/libcontrolcanfd.so ./dbcfeederlib/libcontrolcanfd.so
 
 # By default we use certificates and tokens from kuksa_client, so they must be included
-RUN pyinstaller --collect-data kuksa_client --hidden-import can.interfaces.socketcan --clean -F -s dbcfeeder.py
+RUN pyinstaller --collect-data kuksa_client --hidden-import can.interfaces.socketcan --add-binary ./dbcfeederlib/libcontrolcanfd.so:dbcfeederlib --clean -F -s dbcfeeder.py
 #   --debug=imports
 
 WORKDIR /dist
@@ -61,7 +62,12 @@ WORKDIR /dist
 
 COPY --from=builder /dist/* .
 COPY --from=builder /data/ ./
-
+COPY --from=builder /usr/lib/aarch64-linux-gnu/libz.so.1 /lib/
+COPY --from=builder /usr/lib/aarch64-linux-gnu/libstdc++.so.6 /lib/
+COPY --from=builder /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 /lib/
+COPY --from=builder /usr/lib/aarch64-linux-gnu/libc.so.6 /lib/
+COPY --from=builder /usr/lib/aarch64-linux-gnu/libm.so.6 /lib/
+COPY --from=builder /lib/aarch64-linux-gnu/ld-linux-aarch64.so.1 /lib/
 # pyinstaller doesn't pick up transient libz dependency, so copying it manually
 COPY --from=builder /usr/lib/*-linux-gnu/libz.so.1 /lib/
 
