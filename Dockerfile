@@ -1,3 +1,4 @@
+
 # /********************************************************************************
 # * Copyright (c) 2022 Contributors to the Eclipse Foundation
 # *
@@ -12,7 +13,7 @@
 # ********************************************************************************/
 
 # Build stage, to create a Virtual Environment
-FROM --platform=$TARGETPLATFORM python:3.10-slim-bookworm AS builder
+FROM python:3.10-slim-bookworm AS builder
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
@@ -48,6 +49,10 @@ COPY ./config/* ./config/
 COPY ./mapping/ ./mapping/
 COPY ./*.dbc ./candump*.log ./*.json ./
 
+# Prepare dynamic linker in a known location
+RUN ld_path=$(find / -name ld-linux-aarch64.so.1 2>/dev/null | head -n 1) && \
+    if [ -n "$ld_path" ]; then cp "$ld_path" /dist/ld-linux-aarch64.so.1; else exit 1; fi
+
 # Use distroless base image for runtime
 FROM gcr.io/distroless/base-debian12
 
@@ -57,15 +62,13 @@ WORKDIR /dist
 COPY --from=builder /dist/* .
 COPY --from=builder /data/ ./
 
-# Copy required libraries, handling potential path variations for ld-linux-aarch64.so.1
+# Copy required libraries
 COPY --from=builder /usr/lib/aarch64-linux-gnu/libz.so.1 /lib/
 COPY --from=builder /usr/lib/aarch64-linux-gnu/libstdc++.so.6 /lib/
 COPY --from=builder /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 /lib/
 COPY --from=builder /usr/lib/aarch64-linux-gnu/libc.so.6 /lib/
 COPY --from=builder /usr/lib/aarch64-linux-gnu/libm.so.6 /lib/
-# Dynamically copy the dynamic linker
-RUN ld_path=$(find / -name ld-linux-aarch64.so.1 2>/dev/null | head -n 1) && \
-    if [ -n "$ld_path" ]; then cp "$ld_path" /lib/; else exit 1; fi
+COPY --from=builder /dist/ld-linux-aarch64.so.1 /lib/
 
 ENV PATH="/dist:$PATH"
 
@@ -79,3 +82,5 @@ ENV VEHICLEDATABROKER_DAPR_APP_ID=vehicledatabroker
 ENV PYTHONUNBUFFERED=yes
 
 ENTRYPOINT ["./dbcfeeder"]
+
+
