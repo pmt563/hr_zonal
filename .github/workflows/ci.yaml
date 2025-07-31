@@ -52,7 +52,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/can-feeder
+          images: ghcr.io/${{ github.repository }}/hr-zonal
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
