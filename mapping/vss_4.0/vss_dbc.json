@@ -72,24 +72,6 @@
             "children": {
               "IsEnabled": {
                 "datatype": "boolean",
-                "dbc2vss": {
-                  "interval_ms": 100,
-                  "signal": "DAS_driverInteractionLevel",
-                  "mapping": [
-                    {
-                      "from": "CONTINUED_DRIVER_NOT_INTERACTING",
-                      "to": true
-                    },
-                    {
-                      "from": "DRIVER_INTERACTING",
-                      "to": false
-                    },
-                    {
-                      "from": "DRIVER_NOT_INTERACTING",
-                      "to": true
-                    }
-                  ]
-                },
                 "description": "Indicates if DMS is enabled. True = Enabled. False = Disabled.",
                 "type": "actuator"
               },
@@ -116,7 +98,7 @@
               },
               "IsEngaged": {
                 "datatype": "boolean",
-                "description": "Indicates if EBA is cursrently regulating brake pressure. True = Engaged. False = Not Engaged.",
+                "description": "Indicates if EBA is currently regulating brake pressure. True = Engaged. False = Not Engaged.",
                 "type": "sensor"
               },
               "IsError": {
@@ -320,28 +302,12 @@
         "children": {
           "Pitch": {
             "datatype": "float",
-            "dbc2vss":{
-              "interval_ms": 100,
-              "signal": "RCM_pitchRate",
-              "transform":
-              {
-                "math": "floor(abs(x*3+10))"
-              }
-            },
             "description": "Vehicle rotation rate along Y (lateral).",
             "type": "sensor",
             "unit": "degrees/s"
           },
           "Roll": {
             "datatype": "float",
-            "dbc2vss":{
-              "interval_ms": 100,
-              "signal": "RCM_rollRate",
-              "transform":
-              {
-                "math": "floor(abs(x*6)+2)"
-              }
-            },
             "description": "Vehicle rotation rate along X (longitudinal).",
             "type": "sensor",
             "unit": "degrees/s"
@@ -404,30 +370,6 @@
                   },
                   "IsOn": {
                     "datatype": "boolean",
-                    "dbc2vss": {
-                      "interval_ms": 100,
-                      "signal": "VCRIGHT_reverseLightStatus",
-                      "transform": {
-                        "mapping": [
-                          {
-                            "from": "LIGHT_OFF",
-                            "to": false
-                          },
-                          {
-                            "from": "LIGHT_ON",
-                            "to": true
-                          },
-                          {
-                            "from": "LIGHT_FAULT",
-                            "to": false
-                          },
-                          {
-                            "from": "LIGHT_SNA",
-                            "to": false
-                          }
-                        ]
-                      }
-                    },
                     "description": "Indicates if light is on or off. True = On. False = Off.",
                     "type": "actuator"
                   }
@@ -482,30 +424,6 @@
                       "ADAPTIVE"
                     ],
                     "datatype": "string",
-                    "dbc2vss": {
-                      "interval_ms": 100,
-                      "signal": "VCRIGHT_brakeLightStatus",
-                      "transform": {
-                        "mapping": [
-                          {
-                            "from": "LIGHT_OFF",
-                            "to": "INACTIVE"
-                          },
-                          {
-                            "from": "LIGHT_ON",
-                            "to": "ACTIVE"
-                          },
-                          {
-                            "from": "LIGHT_FAULT",
-                            "to": "INACTIVE"
-                          },
-                          {
-                            "from": "LIGHT_SNA",
-                            "to": "INACTIVE"
-                          }
-                        ]
-                      }
-                    },
                     "description": "Indicates if break-light is active. INACTIVE means lights are off. ACTIVE means lights are on. ADAPTIVE means that break-light is indicating emergency-breaking.",
                     "type": "actuator"
                   },
@@ -529,30 +447,6 @@
                       },
                       "IsSignaling": {
                         "datatype": "boolean",
-                        "dbc2vss": {
-                          "interval_ms": 100,
-                          "signal": "VCLEFT_turnSignalStatus",
-                          "transform": {
-                            "mapping": [
-                              {
-                                "from": "LIGHT_OFF",
-                                "to": false
-                              },
-                              {
-                                "from": "LIGHT_ON",
-                                "to": true
-                              },
-                              {
-                                "from": "LIGHT_FAULT",
-                                "to": false
-                              },
-                              {
-                                "from": "LIGHT_SNA",
-                                "to": false
-                              }
-                            ]
-                          }
-                        },
                         "description": "Indicates if light is signaling or off. True = signaling. False = Off.",
                         "type": "actuator"
                       }
@@ -569,30 +463,6 @@
                       },
                       "IsSignaling": {
                         "datatype": "boolean",
-                        "dbc2vss": {
-                          "interval_ms": 100,
-                          "signal": "VCRIGHT_turnSignalStatus",
-                          "transform": {
-                            "mapping": [
-                              {
-                                "from": "LIGHT_OFF",
-                                "to": false
-                              },
-                              {
-                                "from": "LIGHT_ON",
-                                "to": true
-                              },
-                              {
-                                "from": "LIGHT_FAULT",
-                                "to": false
-                              },
-                              {
-                                "from": "LIGHT_SNA",
-                                "to": false
-                              }
-                            ]
-                          }
-                        },
                         "description": "Indicates if light is signaling or off. True = signaling. False = Off.",
                         "type": "actuator"
                       }
@@ -631,30 +501,6 @@
                       },
                       "IsOn": {
                         "datatype": "boolean",
-                        "dbc2vss": {
-                          "interval_ms": 100,
-                          "signal": "VCRIGHT_brakeLightStatus",
-                          "transform": {
-                            "mapping": [
-                              {
-                                "from": "LIGHT_OFF",
-                                "to": false
-                              },
-                              {
-                                "from": "LIGHT_ON",
-                                "to": true
-                              },
-                              {
-                                "from": "LIGHT_FAULT",
-                                "to": false
-                              },
-                              {
-                                "from": "LIGHT_SNA",
-                                "to": false
-                              }
-                            ]
-                          }
-                        },
                         "description": "Indicates if light is on or off. True = On. False = Off.",
                         "type": "actuator"
                       }
@@ -759,66 +605,24 @@
                 "children": {
                   "IsHeatingOn": {
                     "datatype": "boolean",
-                    "dbc2vss": {
-                      "interval_ms": 1000,
-                      "signal": "VCLEFT_mirrorHeatState",
-                      "transform": {
-                        "mapping": [
-                          {
-                            "from": "HEATER_STATE_ON",
-                            "to": true
-                          },
-                          {
-                            "from": "HEATER_STATE_OFF",
-                            "to": false
-                          }
-                        ]
-                      }
-                    },
                     "description": "Mirror Heater on or off. True = Heater On. False = Heater Off.",
                     "type": "actuator"
                   },
                   "Pan": {
                     "datatype": "int8",
-                    "dbc2vss": {
-                      "interval_ms": 100,
-                      "signal": "VCLEFT_mirrorTiltXPosition",
-                      "transform": {
-                        "math": "floor((x*40)-100)"
-                      }
-                    },
                     "description": "Mirror pan as a percent. 0 = Center Position. 100 = Fully Left Position. -100 = Fully Right Position.",
                     "max": 100,
                     "min": -100,
                     "type": "actuator",
-                    "unit": "percent",
-                    "vss2dbc": {
-                      "signal": "VCLEFT_mirrorTiltXPosition",
-                      "transform": {
-                        "math": "(x+100)/40"
-                      }
-                    }
+                    "unit": "percent"
                   },
                   "Tilt": {
                     "datatype": "int8",
-                    "dbc2vss": {
-                      "interval_ms": 100,
-                      "signal": "VCLEFT_mirrorTiltYPosition",
-                      "transform": {
-                        "math": "floor((x*40)-100)"
-                      }
-                    },
                     "description": "Mirror tilt as a percent. 0 = Center Position. 100 = Fully Upward Position. -100 = Fully Downward Position.",
                     "max": 100,
                     "min": -100,
                     "type": "actuator",
-                    "unit": "percent",
-                    "vss2dbc": {
-                      "signal": "VCLEFT_mirrorTiltYPosition",
-                      "transform": {
-                        "math": "(x+100)/40"
-                      }
-                    }
+                    "unit": "percent"
                   }
                 },
                 "description": "All mirrors.",
@@ -828,34 +632,11 @@
                 "children": {
                   "IsHeatingOn": {
                     "datatype": "boolean",
-                    "dbc2vss": {
-                      "interval_ms": 1000,
-                      "signal": "VCLEFT_mirrorHeatState",
-                      "transform": {
-                        "mapping": [
-                          {
-                            "from": "HEATER_STATE_ON",
-                            "to": true
-                          },
-                          {
-                            "from": "HEATER_STATE_OFF",
-                            "to": false
-                          }
-                        ]
-                      }
-                    },
                     "description": "Mirror Heater on or off. True = Heater On. False = Heater Off.",
                     "type": "actuator"
                   },
                   "Pan": {
                     "datatype": "int8",
-                    "dbc2vss": {
-                      "interval_ms": 100,
-                      "signal": "VCRIGHT_mirrorTiltXPosition",
-                      "transform": {
-                        "math": "floor((x*40)-100)"
-                      }
-                    },
                     "description": "Mirror pan as a percent. 0 = Center Position. 100 = Fully Left Position. -100 = Fully Right Position.",
                     "max": 100,
                     "min": -100,
@@ -864,13 +645,6 @@
                   },
                   "Tilt": {
                     "datatype": "int8",
-                    "dbc2vss": {
-                      "interval_ms": 100,
-                      "signal": "VCRIGHT_mirrorTiltYPosition",
-                      "transform": {
-                        "math": "floor((x*40)-100)"
-                      }
-                    },
                     "description": "Mirror tilt as a percent. 0 = Center Position. 100 = Fully Upward Position. -100 = Fully Downward Position.",
                     "max": 100,
                     "min": -100,
@@ -966,55 +740,8 @@
                   },
                   "IsOpen": {
                     "datatype": "boolean",
-                    "dbc2vss": {
-                      "interval_ms": 1000,
-                      "signal": "VCRIGHT_trunkLatchStatus",
-                      "transform": {
-                        "mapping": [
-                          {
-                            "from": "LATCH_AJAR",
-                            "to": true
-                          },
-                          {
-                            "from": "LATCH_CLOSED",
-                            "to": false
-                          },
-                          {
-                            "from": "LATCH_CLOSING",
-                            "to": true
-                          },
-                          {
-                            "from": "LATCH_FAULT",
-                            "to": true
-                          },
-                          {
-                            "from": "LATCH_OPENED",
-                            "to": true
-                          },
-                          {
-                            "from": "LATCH_OPENING",
-                            "to": true
-                          }
-                        ]
-                      }
-                    },
                     "description": "Trunk open or closed. True = Open. False = Closed.",
-                    "type": "actuator",
-                    "vss2dbc": {
-                      "signal": "VCRIGHT_trunkLatchStatus",
-                      "transform": {
-                        "mapping": [
-                          {
-                            "from": true,
-                            "to": "LATCH_OPENED"
-                          },
-                          {
-                            "from": false,
-                            "to": "LATCH_CLOSED"
-                          }
-                        ]
-                      }
-                    }
+                    "type": "actuator"
                   }
                 },
                 "comment": "A trunk is a luggage compartment in a vehicle. Depending on vehicle, it can be either in the front or back of the vehicle. Some vehicles may have trunks both at the front and at the rear of the vehicle.",
@@ -1039,22 +766,6 @@
                     "children": {
                       "IsLevelLow": {
                         "datatype": "boolean",
-                        "dbc2vss": {
-                          "interval_ms": 1000,
-                          "signal": "VCFRONT_washerFluidLevel",
-                          "transform": {
-                            "mapping": [
-                              {
-                                "from": "LOW",
-                                "to": true
-                              },
-                              {
-                                "from": "NORMAL",
-                                "to": false
-                              }
-                            ]
-                          }
-                        },
                         "description": "Low level indication for washer fluid. True = Level Low. False = Level OK.",
                         "type": "sensor"
                       },
@@ -1350,34 +1061,6 @@
                   "STALLED"
                 ],
                 "datatype": "string",
-                "dbc2vss": {
-                  "interval_ms": 100,
-                  "signal": "DI_tractionControlModeUI",
-                  "transform": {
-                    "mapping": [
-                      {
-                        "from": "NORMAL",
-                        "to": "UNDEFINED"
-                      },
-                      {
-                        "from": "DYNO_MODE",
-                        "to": "CLOSED"
-                      },
-                      {
-                        "from": "ROLLS_MODE",
-                        "to": "OPEN"
-                      },
-                      {
-                        "from": "OFFROAD_ASSIST",
-                        "to": "CLOSING"
-                      },
-                      {
-                        "from": "SLIP_START",
-                        "to": "OPENING"
-                      }
-                    ]
-                  }
-                },
                 "description": "Roof status on convertible vehicles.",
                 "type": "sensor"
               }
@@ -1403,26 +1086,6 @@
                       },
                       "IsOpen": {
                         "datatype": "boolean",
-                        "dbc2vss": {
-                          "interval_ms": 500,
-                          "signal": "VCLEFT_frontDoorState",
-                          "transform": {
-                            "mapping": [
-                              {
-                                "from": "DOOR_STATE_CLOSED",
-                                "to": false
-                              },
-                              {
-                                "from": "DOOR_STATE_OPEN_OR_AJAR",
-                                "to": true
-                              },
-                              {
-                                "from": "DOOR_STATE_RELEASING_LATCH",
-                                "to": true
-                              }
-                            ]
-                          }
-                        },
                         "description": "Is door open or closed",
                         "type": "actuator"
                       },
@@ -1585,26 +1248,6 @@
                       },
                       "IsOpen": {
                         "datatype": "boolean",
-                        "dbc2vss": {
-                          "interval_ms": 500,
-                          "signal": "VCLEFT_rearDoorState",
-                          "transform": {
-                            "mapping": [
-                              {
-                                "from": "DOOR_STATE_CLOSED",
-                                "to": false
-                              },
-                              {
-                                "from": "DOOR_STATE_OPEN_OR_AJAR",
-                                "to": true
-                              },
-                              {
-                                "from": "DOOR_STATE_RELEASING_LATCH",
-                                "to": true
-                              }
-                            ]
-                          }
-                        },
                         "description": "Is door open or closed",
                         "type": "actuator"
                       },
@@ -2222,6 +1865,17 @@
                   }
                 },
                 "description": "HMI related signals",
+                "type": "branch"
+              },
+              "HitAndRun": {
+                "children": {
+                  "Activate": {
+                    "datatype": "uint8",
+                    "description": "Enable or Disable Hit and Run application. 0 = Off. 1 = On. 2 = NA",
+                    "type": "actuator"
+                  }
+                },
+                "description": "Control Hit and Run application.",
                 "type": "branch"
               },
               "Media": {
@@ -2993,22 +2647,6 @@
                       },
                       "IsBelted": {
                         "datatype": "boolean",
-                        "dbc2vss": {
-                          "interval_ms": 1000,
-                          "signal": "VCFRONT_driverBuckleStatus",
-                          "transform": {
-                            "mapping": [
-                              {
-                                "from": "BUCKLED",
-                                "to": true
-                              },
-                              {
-                                "from": "UNBUCKLED",
-                                "to": false
-                              }
-                            ]
-                          }
-                        },
                         "description": "Is the belt engaged.",
                         "type": "sensor"
                       },
@@ -5068,22 +4706,6 @@
                               },
                               "IsFluidLevelLow": {
                                 "datatype": "boolean",
-                                "dbc2vss": {
-                                  "interval_ms": 1000,
-                                  "signal": "VCFRONT_brakeFluidLevel",
-                                  "transform": {
-                                    "mapping": [
-                                      {
-                                        "from": "LOW",
-                                        "to": true
-                                      },
-                                      {
-                                        "from": "NORMAL",
-                                        "to": false
-                                      }
-                                    ]
-                                  }
-                                },
                                 "description": "Brake fluid level status. True = Brake fluid level low. False = Brake fluid level OK.",
                                 "type": "sensor"
                               },
@@ -5099,7 +4721,7 @@
                             "type": "branch"
                           },
                           "Speed": {
-                            "datatype": "float",                              
+                            "datatype": "float",
                             "description": "Rotational speed of a vehicle's wheel.",
                             "type": "sensor",
                             "unit": "km/h"
@@ -5149,22 +4771,6 @@
                               },
                               "IsFluidLevelLow": {
                                 "datatype": "boolean",
-                                "dbc2vss": {
-                                  "interval_ms": 1000,
-                                  "signal": "VCFRONT_brakeFluidLevel",
-                                  "transform": {
-                                    "mapping": [
-                                      {
-                                        "from": "LOW",
-                                        "to": true
-                                      },
-                                      {
-                                        "from": "NORMAL",
-                                        "to": false
-                                      }
-                                    ]
-                                  }
-                                },
                                 "description": "Brake fluid level status. True = Brake fluid level low. False = Brake fluid level OK.",
                                 "type": "sensor"
                               },
@@ -5305,22 +4911,6 @@
                               },
                               "IsFluidLevelLow": {
                                 "datatype": "boolean",
-                                "dbc2vss": {
-                                  "interval_ms": 1000,
-                                  "signal": "VCFRONT_brakeFluidLevel",
-                                  "transform": {
-                                    "mapping": [
-                                      {
-                                        "from": "LOW",
-                                        "to": true
-                                      },
-                                      {
-                                        "from": "NORMAL",
-                                        "to": false
-                                      }
-                                    ]
-                                  }
-                                },
                                 "description": "Brake fluid level status. True = Brake fluid level low. False = Brake fluid level OK.",
                                 "type": "sensor"
                               },
@@ -5386,22 +4976,6 @@
                               },
                               "IsFluidLevelLow": {
                                 "datatype": "boolean",
-                                "dbc2vss": {
-                                  "interval_ms": 1000,
-                                  "signal": "VCFRONT_brakeFluidLevel",
-                                  "transform": {
-                                    "mapping": [
-                                      {
-                                        "from": "LOW",
-                                        "to": true
-                                      },
-                                      {
-                                        "from": "NORMAL",
-                                        "to": false
-                                      }
-                                    ]
-                                  }
-                                },
                                 "description": "Brake fluid level status. True = Brake fluid level low. False = Brake fluid level OK.",
                                 "type": "sensor"
                               },
@@ -5524,13 +5098,6 @@
             "children": {
               "Angle": {
                 "datatype": "int16",
-                "dbc2vss": {
-                  "interval_ms": 100,
-                  "signal": "SteeringAngle129",
-                  "transform": {
-                    "math": "floor(x+0.5)"
-                  }
-                },
                 "description": "Steering wheel angle. Positive = degrees to the left. Negative = degrees to the right.",
                 "type": "sensor",
                 "unit": "degrees"
@@ -5568,6 +5135,39 @@
       },
       "Connectivity": {
         "children": {
+          "Emergency": {
+            "children": {
+              "MediaUpload": {
+                "children": {
+                  "SetStage": {
+                    "datatype": "uint8",
+                    "description": "Control and status of upload progress. 0 = Ready. 1 = Start. 2 = Busy. 3 = NA",
+                    "type": "actuator"
+                  }
+                },
+                "description": "The media upload service for emergency.",
+                "type": "branch"
+              },
+              "Notify": {
+                "children": {
+                  "Email": {
+                    "datatype": "string",
+                    "description": "Notify a string to a predefined email",
+                    "type": "actuator"
+                  },
+                  "SMS": {
+                    "datatype": "string",
+                    "description": "Notify a string to a predefined phone number",
+                    "type": "actuator"
+                  }
+                },
+                "description": "The Notify service for emergency contact",
+                "type": "branch"
+              }
+            },
+            "description": "The services to react when emergency happen.",
+            "type": "branch"
+          },
           "IsConnectivityAvailable": {
             "comment": "This signal can be used by onboard vehicle services to decide what features that shall be offered to the driver, for example disable the 'check for update' button if vehicle does not have connectivity.",
             "datatype": "boolean",
@@ -5576,6 +5176,30 @@
           }
         },
         "description": "Connectivity data.",
+        "type": "branch"
+      },
+      "CrashOutput": {
+        "children": {
+          "DetectionCrashType": {
+            "datatype": "uint8",
+            "dbc2vss":{
+              "interval_ms": 100,
+              "signal": "SRS_CrashOut_DetectionCrashType",
+              "transform":
+              {
+                "math": "abs(x)"
+              }
+            },
+            "description": "Detected crash, proprietary signals mapping.",
+            "type": "sensor"
+          },
+          "InjectionCrashType": {
+            "datatype": "uint8",
+            "description": "For simulation crash only, proprietary signals mapping.",
+            "type": "actuator"
+          }
+        },
+        "description": "Crash output signal.",
         "type": "branch"
       },
       "CurbWeight": {
@@ -5766,6 +5390,56 @@
             "type": "sensor",
             "unit": "celsius"
           },
+          "Camera": {
+            "children": {
+              "Front": {
+                "children": {
+                  "Activate": {
+                    "datatype": "uint8",
+                    "description": "Control exterior camera to wake-up and capture. 0 = Off. 1 = Low Rate Capture. 2 = Full Rate Capture. 3 = NA",
+                    "type": "actuator"
+                  }
+                },
+                "description": "All cameras.",
+                "type": "branch"
+              },
+              "LeftSide": {
+                "children": {
+                  "Activate": {
+                    "datatype": "uint8",
+                    "description": "Control exterior camera to wake-up and capture. 0 = Off. 1 = Low Rate Capture. 2 = Full Rate Capture. 3 = NA",
+                    "type": "actuator"
+                  }
+                },
+                "description": "All cameras.",
+                "type": "branch"
+              },
+              "Rear": {
+                "children": {
+                  "Activate": {
+                    "datatype": "uint8",
+                    "description": "Control exterior camera to wake-up and capture. 0 = Off. 1 = Low Rate Capture. 2 = Full Rate Capture. 3 = NA",
+                    "type": "actuator"
+                  }
+                },
+                "description": "All cameras.",
+                "type": "branch"
+              },
+              "RightSide": {
+                "children": {
+                  "Activate": {
+                    "datatype": "uint8",
+                    "description": "Control exterior camera to wake-up and capture. 0 = Off. 1 = Low Rate Capture. 2 = Full Rate Capture. 3 = NA",
+                    "type": "actuator"
+                  }
+                },
+                "description": "All cameras.",
+                "type": "branch"
+              }
+            },
+            "description": "All cameras.",
+            "type": "branch"
+          },
           "Humidity": {
             "datatype": "float",
             "description": "Relative humidity outside the vehicle. 0 = Dry, 100 = Air fully saturated.",
@@ -5782,6 +5456,76 @@
             "min": 0,
             "type": "sensor",
             "unit": "percent"
+          },
+          "Radar": {
+            "children": {
+              "Front": {
+                "children": {
+                  "IsObjectInRange": {
+                    "datatype": "uint8",
+                    "description": "Indicates if an object is predefined warning zone. 0 = No. 1 = Yes. 2 = NA",
+                    "type": "sensor"
+                  },
+                  "ObjectDirection": {
+                    "datatype": "uint8",
+                    "description": "Indicates the direction of detected object relative to the vehicle. 0 = Standstill. 1 = Toward. 2 = Away. 3 = NA",
+                    "type": "sensor"
+                  }
+                },
+                "description": "All radars.",
+                "type": "branch"
+              },
+              "LeftSide": {
+                "children": {
+                  "IsObjectInRange": {
+                    "datatype": "uint8",
+                    "description": "Indicates if an object is predefined warning zone. 0 = No. 1 = Yes. 2 = NA",
+                    "type": "sensor"
+                  },
+                  "ObjectDirection": {
+                    "datatype": "uint8",
+                    "description": "Indicates the direction of detected object relative to the vehicle. 0 = Standstill. 1 = Toward. 2 = Away. 3 = NA",
+                    "type": "sensor"
+                  }
+                },
+                "description": "All radars.",
+                "type": "branch"
+              },
+              "Rear": {
+                "children": {
+                  "IsObjectInRange": {
+                    "datatype": "uint8",
+                    "description": "Indicates if an object is predefined warning zone. 0 = No. 1 = Yes. 2 = NA",
+                    "type": "sensor"
+                  },
+                  "ObjectDirection": {
+                    "datatype": "uint8",
+                    "description": "Indicates the direction of detected object relative to the vehicle. 0 = Standstill. 1 = Toward. 2 = Away. 3 = NA",
+                    "type": "sensor"
+                  }
+                },
+                "description": "All radars.",
+                "type": "branch"
+              },
+              "RightSide": {
+                "children": {
+                  "IsObjectInRange": {
+                    "datatype": "uint8",
+                    "description": "Indicates if an object is predefined warning zone. 0 = No. 1 = Yes. 2 = NA",
+                    "type": "sensor"
+                  },
+                  "ObjectDirection": {
+                    "datatype": "uint8",
+                    "description": "Indicates the direction of detected object relative to the vehicle. 0 = Standstill. 1 = Toward. 2 = Away. 3 = NA",
+                    "type": "sensor"
+                  }
+                },
+                "description": "All radars.",
+                "type": "branch"
+              }
+            },
+            "description": "All radars.",
+            "type": "branch"
           }
         },
         "description": "Information about exterior measured by vehicle.",
@@ -5818,6 +5562,18 @@
         "description": "Overall vehicle length.",
         "type": "attribute",
         "unit": "mm"
+      },
+      "LocalStorage": {
+        "children": {
+          "WriteFileName": {
+            "datatype": "string",
+            "default": "NA",
+            "description": "Store a file with the given name.",
+            "type": "actuator"
+          }
+        },
+        "description": "Control the local storage.",
+        "type": "branch"
       },
       "LowVoltageBattery": {
         "children": {
@@ -5910,10 +5666,6 @@
           },
           "AmbientAirTemperature": {
             "datatype": "float",
-            "dbc2vss": {
-              "interval_ms": 1000,
-              "signal": "VCFRONT_tempAmbientFiltered"
-            },
             "description": "PID 46 - Ambient air temperature",
             "type": "sensor",
             "unit": "celsius"
@@ -5986,10 +5738,6 @@
           },
           "ControlModuleVoltage": {
             "datatype": "float",
-            "dbc2vss": {
-              "interval_ms": 1000,
-              "signal": "PCS_dcdcLvBusVolt"
-            },
             "description": "PID 42 - Control module voltage",
             "type": "sensor",
             "unit": "V"
@@ -6068,13 +5816,6 @@
           },
           "EngineLoad": {
             "datatype": "float",
-            "dbc2vss": {
-              "interval_ms": 100,
-              "signal": "RearPower266",
-              "transform": {
-                "math": "floor(abs(x/5))"
-              }
-            },
             "description": "PID 04 - Engine load in percent - 0 = no load, 100 = full load",
             "type": "sensor",
             "unit": "percent"
@@ -7157,20 +6898,12 @@
               },
               "Temperature": {
                 "datatype": "int16",
-                "dbc2vss": {
-                  "interval_ms": 1000,
-                  "signal": "PTC_rightTempIGBT"
-                },
                 "description": "Motor temperature.",
                 "type": "sensor",
                 "unit": "celsius"
               },
               "Torque": {
                 "datatype": "int16",
-                "dbc2vss": {
-                  "interval_ms": 100,
-                  "signal": "DIR_torqueActual"
-                },
                 "description": "Current motor torque. Negative values indicate regen mode.",
                 "type": "sensor",
                 "unit": "Nm"
@@ -7461,42 +7194,6 @@
                   },
                   "IsCharging": {
                     "datatype": "boolean",
-                    "dbc2vss": {
-                      "interval_ms": 1000,
-                      "signal": "CP_hvChargeStatus",
-                      "transform": {
-                        "mapping": [
-                          {
-                            "from": "CP_CHARGE_CONNECTED",
-                            "to": false
-                          },
-                          {
-                            "from": "CP_CHARGE_ENABLED",
-                            "to": true
-                          },
-                          {
-                            "from": "CP_CHARGE_FAULTED",
-                            "to": false
-                          },
-                          {
-                            "from": "CP_CHARGE_INACTIVE",
-                            "to": false
-                          },
-                          {
-                            "from": "CP_CHARGE_STANDBY",
-                            "to": false
-                          },
-                          {
-                            "from": "CP_EVSE_TEST_PASSED",
-                            "to": true
-                          },
-                          {
-                            "from": "CP_EXT_EVSE_TEST_ACTIVE",
-                            "to": true
-                          }
-                        ]
-                      }
-                    },
                     "description": "True if charging is ongoing. Charging is considered to be ongoing if energy is flowing from charger to vehicle.",
                     "type": "sensor"
                   },
@@ -7792,30 +7489,6 @@
               },
               "CurrentGear": {
                 "datatype": "int8",
-                "dbc2vss": {
-                  "interval_ms": 100,
-                  "signal": "DI_gear",
-                  "transform": {
-                    "mapping": [
-                      {
-                        "from": "DI_GEAR_D",
-                        "to": 1
-                      },
-                      {
-                        "from": "DI_GEAR_P",
-                        "to": 0
-                      },
-                      {
-                        "from": "DI_GEAR_INVALID",
-                        "to": 0
-                      },
-                      {
-                        "from": "DI_GEAR_R",
-                        "to": -1
-                      }
-                    ]
-                  }
-                },
                 "description": "The current gear. 0=Neutral, 1/2/..=Forward, -1/-2/..=Reverse.",
                 "type": "sensor"
               },
@@ -7865,43 +7538,49 @@
               "IsElectricalPowertrainEngaged": {
                 "comment": "In some hybrid solutions it is possible to disconnect/disengage the electrical powertrain mechanically to avoid induced voltage reaching a too high level when driving at high speed.",
                 "datatype": "boolean",
+                "vss2dbc": {
+                  "signal": "SRS_ABECU_IsSleep",
+                  "transform":{
+                    "mapping": [
+                      {
+                        "from": false,
+                        "to": false
+                      },
+                      {
+                        "from": true,
+                        "to": true
+                      }
+                    ]
+                  }
+                },
                 "description": "Is electrical powertrain mechanically connected/engaged to the drivetrain or not. False = Disconnected/Disengaged. True = Connected/Engaged.",
                 "type": "actuator"
               },
               "IsLowRangeEngaged": {
                 "comment": "The possibility to switch between low and high gear range is typically only available in heavy vehicles and off-road vehicles.",
                 "datatype": "boolean",
+                "vss2dbc": {
+                  "signal": "SRS_ABECU_IsWakeUp",
+                  "transform":{
+                    "mapping": [
+                      {
+                        "from": false,
+                        "to": false
+                      },
+                      {
+                        "from": true,
+                        "to": true
+                      }
+                    ]
+                  }
+                },
                 "description": "Is gearbox in low range mode or not. False = Normal/High range engaged. True = Low range engaged.",
                 "type": "actuator"
               },
               "IsParkLockEngaged": {
                 "datatype": "boolean",
-                "dbc2vss": {
-                  "interval_ms": 100,
-                  "signal": "DI_gear",
-                  "transform": {
-                    "mapping": [
-                      {
-                        "from": "DI_GEAR_D",
-                        "to": false
-                      },
-                      {
-                        "from": "DI_GEAR_P",
-                        "to": true
-                      },
-                      {
-                        "from": "DI_GEAR_INVALID",
-                        "to": false
-                      },
-                      {
-                        "from": "DI_GEAR_R",
-                        "to": false
-                      }
-                    ]
-                  }
-                },
                 "description": "Is the transmission park lock engaged or not. False = Disengaged. True = Engaged.",
-                "type": "sensor"
+                "type": "actuator"
               },
               "PerformanceMode": {
                 "allowed": [
@@ -8004,17 +7683,10 @@
       },
       "Speed": {
         "datatype": "float",
-        "dbc2vss": {
-          "interval_ms": 100,
-          "signal": "DI_uiSpeed",
-          "transform": {
-                                "math": "floor(abs(x))"
-        },
         "description": "Vehicle speed.",
         "type": "sensor",
         "unit": "km/h"
-      }
-    },
+      },
       "StartTime": {
         "comment": "This signal is supposed to be set whenever a new trip starts. A new trip is considered to start when engine gets enabled (e.g. LowVoltageSystemState in ON or START mode). A trip is considered to end when engine is no longer enabled. The default value indicates that the vehicle never has been started, or that latest start time is unknown.",
         "datatype": "string",
@@ -8026,30 +7698,6 @@
         "children": {
           "IsConnected": {
             "datatype": "boolean",
-            "dbc2vss": {
-              "interval_ms": 3000,
-              "signal": "VCLEFT_trailerDetected",
-              "transform": {
-                "mapping": [
-                  {
-                    "from": "TRAILER_LIGHT_DETECTION_SNA",
-                    "to": false
-                  },
-                  {
-                    "from": "TRAILER_LIGHT_DETECTION_DETECTED",
-                    "to": true
-                  },
-                  {
-                    "from": "TRAILER_LIGHT_DETECTION_FAULT",
-                    "to": false
-                  },
-                  {
-                    "from": "TRAILER_LIGHT_DETECTION_NOT_DETECTED",
-                    "to": false
-                  }
-                ]
-              }
-            },
             "description": "Signal indicating if trailer is connected or not.",
             "type": "sensor"
           }

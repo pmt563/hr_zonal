@@ -5195,6 +5195,12 @@
           },
           "InjectionCrashType": {
             "datatype": "uint8",
+            "vss2dbc": {
+              "signal": "SRS_ABECU_ThresholdCAN",
+              "transform": {
+              "math": "x"
+              }
+            },
             "description": "For simulation crash only, proprietary signals mapping.",
             "type": "actuator"
           }
@@ -5396,6 +5402,11 @@
                 "children": {
                   "Activate": {
                     "datatype": "uint8",
+                    "vss2dbc": {
+              		"signal": "SRS_ABECU_IsWakeUp",
+              		"transform": {
+              			"math": "x"
+              		},
                     "description": "Control exterior camera to wake-up and capture. 0 = Off. 1 = Low Rate Capture. 2 = Full Rate Capture. 3 = NA",
                     "type": "actuator"
                   }

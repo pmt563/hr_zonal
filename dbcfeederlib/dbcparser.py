@@ -138,6 +138,7 @@ class DBCParser:
         log.warning("Signal %s not found in CAN message database", sig_to_find)
         empty_set: Set[cantools.database.Message] = set()
         self._signal_to_message_definitions[sig_to_find] = empty_set
+        log.info("Returning empty set for signal %s", sig_to_find)
         return empty_set
 
     def get_message_by_frame_id(self, frame_id: int) -> cantools.database.Message:
@@ -145,6 +146,7 @@ class DBCParser:
         Get the CAN message definition for a given CAN frame ID.
         Raises KeyError if no message definition for the given frame ID exists.
         """
+        log.info("CAN message in DBC: %s", self._db.get_message_by_frame_id(frame_id))
         return self._db.get_message_by_frame_id(frame_id)
 
     def get_signals_by_frame_id(self, frame_id: int) -> List[cantools.database.Signal]:

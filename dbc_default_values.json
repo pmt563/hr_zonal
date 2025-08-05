@@ -21,5 +21,8 @@
   "VCLEFT_rearRelActuatorSwitch" : 0,
   "VCFRONT_crashState"  : 0,
   "DI_tractionControlModeUI" : 0,
-  "VCFRONT_hpCabinLoadType" : 1
+  "VCFRONT_hpCabinLoadType" : 1,
+  "SRS_ABECU_ThresholdCAN" : 0,
+  "SRS_ABECU_IsSleep": false,
+  "SRS_ABECU_IsWakeUp": false
 }

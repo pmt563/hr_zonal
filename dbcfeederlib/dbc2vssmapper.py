@@ -447,6 +447,7 @@ class Mapper(DBCParser):
             self._analyze_dbc2vss(expanded_name, node, dbc2vss_def)
         if "vss2dbc" in node:
             if node["type"] == "actuator":
+                log.debug("VSS signal %s has \"vss2dbc\" property", expanded_name)
                 self._analyze_vss2dbc(expanded_name, node, node["vss2dbc"])
             else:
                 # vss2dbc is handled by subscription to target value, so only makes sense for actuators
@@ -496,6 +497,7 @@ class Mapper(DBCParser):
 
     def get_vss2dbc_entries(self) -> KeysView[str]:
         """Get all VSS Data Entry paths for which a mapping to a CAN signal name exists."""
+        log.info("VSS to DBC entries: %s", self._vss2dbc_mapping.keys())
         return self._vss2dbc_mapping.keys()
 
     def get_vss_names(self) -> Set[str]:
@@ -504,12 +506,14 @@ class Mapper(DBCParser):
         for entry in self._dbc2vss_mapping.values():
             for vss_mapping in entry:
                 vss_names.add(vss_mapping.vss_name)
+        log.info("VSS names in dbc2vss mappings: %s", vss_names.union(self._vss2dbc_mapping.keys()))
         return vss_names.union(self._vss2dbc_mapping.keys())
 
     def has_dbc2vss_mapping(self) -> bool:
         return bool(self._dbc2vss_mapping)
 
     def has_vss2dbc_mapping(self) -> bool:
+        log.info("Has VSS --> DBC mapping")
         return bool(self._vss2dbc_mapping)
 
     def get_dbc2vss_mappings(self, dbc_name: str) -> List[VSSMapping]:
@@ -525,11 +529,13 @@ class Mapper(DBCParser):
         """
         dbc_ids = set()
         # Theoretically there might me multiple DBC-signals served by this VSS-signal
+        log.info("[handle_update] Handling update for VSS signals: %s", vss_name)
         for dbc_mapping in self._vss2dbc_mapping[vss_name]:
 
             dbc_value = dbc_mapping.transform_value(value)
             dbc_mapping.last_dbc_value = dbc_value
             dbc_ids.add(dbc_mapping.dbc_name)
+        log.info("[handle_update] VSS %s mapped to DBC signals: %s", vss_name, dbc_ids)
         return dbc_ids
 
     def get_default_values(self, can_id) -> Dict[str, Any]:

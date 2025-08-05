@@ -87,7 +87,7 @@ class Feeder:
     """
 
     def __init__(self, kuksa_client: clientwrapper.ClientWrapper,
-                 elmcan_config: Dict[str, Any], dbc2vss: bool = True, vss2dbc: bool = False):
+                 elmcan_config: Dict[str, Any], dbc2vss: bool = True, vss2dbc: bool = True):
         self._running: bool = False
         self._reader: Optional[CanReader] = None
         self._mapper: Optional[dbc2vssmapper.Mapper] = None
@@ -151,9 +151,9 @@ class Feeder:
             threads.append(receiver)
 
         if not self._vss2dbc_enabled:
-            log.info("Mapping of VSS Data Entries to CAN signals is disabled.")
+            log.info("1 ---------------------------------- Mapping of VSS Data Entries to CAN signals is disabled.")
         elif not self._mapper.has_vss2dbc_mapping():
-            log.info("No mappings from VSS Data Entries to CAN signals defined.")
+            log.info("2 ---------------------------------- No mappings from VSS Data Entries to CAN signals defined.")
         elif not self._kuksa_client.supports_subscription():
             log.error(
                 "The configured kuksa.val client [%s] does not support subscribing to VSS Data Entry changes!",
@@ -165,7 +165,8 @@ class Feeder:
             # For now creating another bus
             # Maybe support different buses for downstream/upstream in the future
 
-            self._canclient = CANClient(interface="socketcan", channel=canport, fd=can_fd)
+            # self._canclient = CANClient(interface="socketcan", channel=canport, fd=can_fd)
+            self._canclient = CANClient()
 
             transmitter = threading.Thread(target=self._run_transmitter)
             transmitter.start()
@@ -295,10 +296,15 @@ class Feeder:
                     )
                     affected_signals = self._mapper.handle_update(update.entry.path, update.entry.actuator_target.value)
                     dbc_signal_names.update(affected_signals)
+                else:
+                    log.debug("######################## Actuator target is NONE #################")
 
             messages_to_send: Set[Message] = set()
             for signal_name in dbc_signal_names:
                 messages_to_send.update(self._mapper.get_messages_for_signal(signal_name))
+                log.info("Found %d messages for signal %s",
+                         len(messages_to_send), signal_name
+                         )
 
             for message_definition in messages_to_send:
                 log.debug(
@@ -306,7 +312,13 @@ class Feeder:
                     message_definition.name, message_definition.frame_id
                 )
                 sig_dict = self._mapper.get_value_dict(message_definition.frame_id)
+                log.info(
+                    "Sending CAN message %s with frame ID %#x, signals: %s",
+                    message_definition.name, message_definition.frame_id, sig_dict
+                )
                 data = message_definition.encode(sig_dict)
+                log.info("Type CAN data prepare to send: %s", type(data))
+                log.info("Encoded CAN data: %s", data.hex())
                 self._canclient.send(arbitration_id=message_definition.frame_id, data=data)
 
     async def _run_subscribe(self):
@@ -314,6 +326,7 @@ class Feeder:
         Requests the client wrapper to start subscription.
         Checks every second if we have requested to stop reception and if so exits
         """
+        log.info("VSS need to be SUB: %s", self._mapper.get_vss2dbc_entries())
         asyncio.create_task(self._kuksa_client.subscribe(self._mapper.get_vss2dbc_entries(), self._vss_update))
         while self._transmit:
             await asyncio.sleep(1)
@@ -569,6 +582,20 @@ def main(argv):
         if not config.has_section(CONFIG_SECTION_ELMCAN):
             parser.error("Cannot use elmcan without configuration in [elmcan] section!")
         elmcan_config = config[CONFIG_SECTION_ELMCAN]
+    
+    log.info("Config variable and value: %s", config.items(CONFIG_SECTION_GENERAL))
+    log.info("Command line arguments: %s", args)
+    log.info("Using DBC file(s): %s", dbcfile)
+    log.info("Using CAN port: %s", canport)
+    log.info("Using mapping file: %s", mappingfile)
+    log.info("Using DBC default file: %s", dbc_default)
+    log.info("Using CAN dump file: %s", candumpfile)
+    log.info("Using J1939: %s", use_j1939)
+    log.info("Using DBC2VAL: %s", use_dbc2val)
+    log.info("Using VAL2DBC: %s", use_val2dbc)
+    log.info("Using ELM CAN configuration: %s", elmcan_config)
+    log.info("Using server type: %s", args.server_type or config.get(CONFIG_SECTION_GENERAL, "server_type", fallback=ServerType.KUKSA_VAL_SERVER.name))
+    log.info("Using strict DBC parsing: %s", args.strict)
 
     kuksa_val_client = _get_kuksa_val_client(args, config)
     feeder = Feeder(kuksa_val_client, elmcan_config, dbc2vss=use_dbc2val, vss2dbc=use_val2dbc)

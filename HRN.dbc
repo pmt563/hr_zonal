@@ -251,11 +251,11 @@ CM_ SG_ 3221225472 SRS_CrashOut_Left " ";
 CM_ SG_ 3221225472 SRS_CrashOut_Front " ";
 CM_ BO_ 1281 " ";
 CM_ BO_ 384 " ";
-CM_ SG_ 384 EpsSasSteerAg "方向盘往零点左转为正，零点右转为负
+CM_ SG_ 384 EpsSasSteerAg "锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟阶拷锟斤拷锟斤拷锟斤拷锟斤拷转为锟斤拷
 Steering wheel angle (N = value of the message) =
-   = N × 0.1 , for 0 < N ≤ 32767
-   = (N-65536) × 0.1 , for N ＞ 32767
-Note=       that Clockwise rotation is ‘-‘ and anti-Clockwise rotation is ‘+‘ ";
+   = N 锟斤拷 0.1 , for 0 < N 锟斤拷 32767
+   = (N-65536) 锟斤拷 0.1 , for N 锟斤拷 32767
+Note=       that Clockwise rotation is 锟斤拷-锟斤拷 and anti-Clockwise rotation is 锟斤拷+锟斤拷 ";
 CM_ SG_ 384 EpsSasSteerAgVld " ";
 CM_ BO_ 342 " ";
 CM_ SG_ 342 EpbSts " ";
@@ -323,7 +323,7 @@ CM_ SG_ 80 SrsMid2ndBucSwtSts " ";
 CM_ SG_ 80 SrsLe2ndBucSwtSts " ";
 CM_ SG_ 80 SrsCrashOutpStsChks "Checksum
 =(SRS_CrashOutputStatus)XOR0xF ";
-CM_ SG_ 80 SrsCrashOutpSts "碰撞信号定义为本报文唯一的事件触发信号, 当信号值为非0时，以20ms周期重复发送10次，之后周期恢复为500ms
+CM_ SG_ 80 SrsCrashOutpSts "锟斤拷撞锟脚号讹拷锟斤拷为锟斤拷锟斤拷锟斤拷唯一锟斤拷锟铰硷拷锟斤拷锟斤拷锟脚猴拷, 锟斤拷锟脚猴拷值为锟斤拷0时锟斤拷锟斤拷20ms锟斤拷锟斤拷锟截革拷锟斤拷锟斤拷10锟轿ｏ拷之锟斤拷锟斤拷锟节恢革拷为500ms
 0x2~0xF=NotUsed ";
 CM_ BO_ 338 " ";
 CM_ SG_ 338 AD_Authernticator_152 " ";
@@ -1166,7 +1166,7 @@ VAL_ 450 EspFctOpenSts 0 "Off" 1 "ON" ;
 VAL_ 450 EspAbsFailr 0 "No error" 1 "Error" ;
 VAL_ 450 EspVehSpdVld 0 "Valid" 1 "Invalid" ;
 VAL_ 378 IbBrkPedlStsGbVld 0 "NotInitialized" 1 "Normal" 2 "Invalid" ;
-VAL_ 378 IbBrkPedlStsGb 0 "制动未踩下" 101 "制动踩下" ;
+VAL_ 378 IbBrkPedlStsGb 0 "锟狡讹拷未锟斤拷锟斤拷" 101 "锟狡讹拷锟斤拷锟斤拷" ;
 VAL_ 378 IbBrkPedlTrvlDrvrVld 0 "NotInitialized" 1 "Normal" 2 "Invalid" ;
 VAL_ 353 EspCdpActv 0 "Not active" 1 "active" ;
 VAL_ 353 ESP_AWBactive 0 "notactive" 1 "active" ;
@@ -1202,7 +1202,7 @@ VAL_ 338 ESP1_CDDActive 0 "notactive" 1 "active" ;
 VAL_ 338 AD_AEBTargetLngRange 0 "70~180" 501 "reserved" 511 "no display" ;
 VAL_ 338 AD_AEBTargetLatRange 0 "50=50m" 1001 "reserved" ;
 VAL_ 338 AD_AEBTargetType 0 "no display" 1 "sedan" 2 "motorcycle" 3 "pedestrian" 4 "Bicycle" 5 "Bus" 7 "truck" 8 "reserved" 15 "other" ;
-VAL_ 338 AD_AEBTargetTTC 1 "0.1~6" 0 "无目标" 63 "invalid" ;
+VAL_ 338 AD_AEBTargetTTC 1 "0.1~6" 0 "锟斤拷目锟斤拷" 63 "invalid" ;
 VAL_ 338 AD_AEBStatus 0 "off" 1 "passive" 2 "failure" 3 " standby" 4 "active" 5 "reserved" ;
 VAL_ 338 AD_ACCMode 0 "OFF mode" 1 "Passive mode" 2 "StandBy mode" 3 "Active Control mode" 4 "Brake Only mode" 5 "Override" 6 "Stand Wait mode" 7 "Failure mode" ;
 VAL_ 338 AD_CDDActive 0 "not active" 1 "Active" ;
@@ -1226,7 +1226,7 @@ VAL_ 941 AD_TargetBasedLateralControl 0 "no lateral control" 1 "around Based" 2 
 VAL_ 919 VIUFL_OTAmode 0 " OTAinactive " 1 "OTAmode" 2 " Reserved" ;
 VAL_ 648 BcmTurnIndcrRi 0 "OFF" 1 "ON" 2 "Notused" 3 "Error" ;
 VAL_ 648 BcmTurnIndcrLe 0 "OFF" 1 "ON" 2 "Notused" 3 "Error" ;
-VAL_ 648 BcmEmgyLiSts 0 "OFF" 1 "ON" 2 "Notused" 3 "Error（故障）" ;
+VAL_ 648 BcmEmgyLiSts 0 "OFF" 1 "ON" 2 "Notused" 3 "Error锟斤拷锟斤拷锟较ｏ拷" ;
 VAL_ 648 BCM_TurnLightSwitchSts 0 "Not Actived" 1 "Left Actived" 2 "Right Actived" 3 "Invalid" ;
 VAL_ 648 BcmPwrStsFb 0 "Off" 1 "Reserve" 2 "ON" 3 "Reserve" ;
 VAL_ 433 VcuAccrPedlPosnVld 0 "Valid" 1 "Invalid" ;
@@ -1245,6 +1245,6 @@ VAL_ 1297 TpmsRiReTirePWarn 0 "Nowarning" 1 "Highpressurewarning" 2 "Lowpressure
 VAL_ 1297 TpmsRiFrntTirePWarn 0 "Nowarning" 1 "Highpressurewarning" 2 "Lowpressurewarning" 3 "Quikleakage" 4 "LostSensor" 5 "Sensorbatterylow" 6 "Sensorfailure" 7 "Unlearning" ;
 VAL_ 1297 TpmsLeReTirePWarn 0 "Nowarning" 1 "Highpressurewarning" 2 "Lowpressurewarning" 3 "Quikleakage" 4 "LostSensor" 5 "Sensorbatterylow" 6 "Sensorfailure" 7 "Unlearning" ;
 VAL_ 1297 TpmsLeFrntTirePWarn 0 "Nowarning" 1 "Highpressurewarning" 2 "Lowpressurewarning" 3 "Quikleakage" 4 "LostSensor" 5 "Sensorbatterylow" 6 "Sensorfailure" 7 "Unlearning" ;
-VAL_ 688 VcuLoSocPowerOffFlag 0 "无效" 1 "有效" ;
+VAL_ 688 VcuLoSocPowerOffFlag 0 "锟斤拷效" 1 "锟斤拷效" ;
 VAL_ 688 VcuCCMode 0 "Off" 1 "Active" 2 "Standby" 3 "Error" ;
 

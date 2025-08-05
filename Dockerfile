@@ -48,6 +48,7 @@ WORKDIR /data
 COPY ./config/* ./config/
 COPY ./mapping/ ./mapping/
 COPY ./*.dbc ./candump*.log ./*.json ./
+COPY ./HRN.dbc ./HRN.dbc
 
 # Prepare dynamic linker in a known location
 RUN ld_path=$(find / -name ld-linux-aarch64.so.1 2>/dev/null | head -n 1) && \

@@ -6,6 +6,9 @@ import logging
 from typing import Optional
 import can  # type: ignore
 import sys
+import struct
+import typing
+
 cur_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 print(f"canclient current dir: {cur_path}")
 import sys
@@ -179,7 +182,7 @@ def set_baud_rate(device_handle):
     print(f"Set CAN{channel} dbit:{baud_rate_d} OK!")
 
 def configure_canfd_mode(device_handle):
-    channel = 0
+    channel = 1
     ret = canDLL.ZCAN_SetCANFDStandard(device_handle, channel, 0)
     if ret != STATUS_OK:
         print(f"Set CAN{channel} ISO mode failed!")
@@ -239,18 +242,50 @@ def receive_canfd_data(dev_ch2):
                   f"eff:{rcv_canfd_msgs[i].frame.eff}, rtr:{rcv_canfd_msgs[i].frame.rtr}, esi:{rcv_canfd_msgs[i].frame.esi}, "
                   f"brs:{rcv_canfd_msgs[i].frame.brs}, data:{' '.join(hex(rcv_canfd_msgs[i].frame.data[j]) for j in range(rcv_canfd_msgs[i].frame.len))}")
 
+# def send_can_data(dev_ch1, can_id, can_data):
+#     transmit_can_num = 1
+#     can_msgs = (ZCAN_Transmit_Data * transmit_can_num)()
+#     for i in range(transmit_can_num):
+#         can_msgs[i].transmit_type = 0
+#         can_msgs[i].frame.eff     = 0
+#         can_msgs[i].frame.rtr     = 0
+#         can_msgs[i].frame.can_id  = can_id
+#         can_msgs[i].frame.can_dlc = 8
+#         can_msgs[i].frame.data = can_data
+#     ret = canDLL.ZCAN_Transmit(dev_ch1, can_msgs, transmit_can_num)
+#     log.info(f"\nCAN1 Transmit CAN Num: {ret} {transmit_can_num}")
+
 def send_can_data(dev_ch1, can_id, can_data):
     transmit_can_num = 1
     can_msgs = (ZCAN_Transmit_Data * transmit_can_num)()
+    
     for i in range(transmit_can_num):
         can_msgs[i].transmit_type = 0
         can_msgs[i].frame.eff     = 0
         can_msgs[i].frame.rtr     = 0
         can_msgs[i].frame.can_id  = can_id
         can_msgs[i].frame.can_dlc = 8
-        can_msgs[i].frame.data = can_data
+        
+        # Handle different types of can_data
+        if isinstance(can_data, (bytes, bytearray)):
+            for j in range(min(len(can_data), 8)):
+                can_msgs[i].frame.data[j] = can_data[j]
+        elif isinstance(can_data, int):
+            # Convert integer to bytes using big-endian
+            bits = struct.unpack('!Q', struct.pack('!Q', can_data))[0]
+            for j in range(8):
+                can_msgs[i].frame.data[j] = (bits >> (8 * (7 - j))) & 0xFF
+        elif isinstance(can_data, typing.Iterable):
+            # Handle iterable of integers
+            data_list = list(can_data)[:8]  # Limit to 8 bytes
+            for j in range(min(len(data_list), 8)):
+                can_msgs[i].frame.data[j] = data_list[j]
+        else:
+            raise ValueError("Unsupported can_data type")
+            
     ret = canDLL.ZCAN_Transmit(dev_ch1, can_msgs, transmit_can_num)
-    print(f"\nCAN1 Transmit CAN Num: {ret} {transmit_can_num}")
+    log.info(f"\nCAN1 Transmit CAN Num: {ret} {transmit_can_num}")
+
 
 def receive_can_data(dev_ch2):
     ret = canDLL.ZCAN_GetReceiveNum(dev_ch2, TYPE_CAN)
@@ -296,13 +331,11 @@ class CANClient:
         # pylint: disable=abstract-class-instantiated
         # self._bus = can.interface.Bus(*args, **kwargs)
         log.info("Start init CAN USB Client")
-        device_handle = open_device()
-        self._device_handle = device_handle
+        self._device_handle = open_device()
 
         
         set_baud_rate(self._device_handle)
-    
-    # configure_canfd_mode(device_handle)
+        configure_canfd_mode(self._device_handle)
 
     # dev_ch1 = init_channel(device_handle, 0)
     # start_channel(dev_ch1)
@@ -311,10 +344,8 @@ class CANClient:
     # configure_filter(dev_ch2)
     # start_channel(dev_ch2)
     
-        dev_ch2 = init_channel(self._device_handle, 1)  # CAN2 for receiving
-        dev_ch1 = init_channel(self._device_handle, 0)  # CAN1 for testing
-        self._dev_ch1 = dev_ch1
-        self._dev_ch2 = dev_ch2
+        self._dev_ch2 = init_channel(self._device_handle, 1)  # CAN2 for receiving
+        self._dev_ch1 = init_channel(self._device_handle, 0)  # CAN1 for testing
         configure_filter(self._dev_ch2)
         start_channel(self._dev_ch2)
     
@@ -329,25 +360,12 @@ class CANClient:
 
     def recv(self, timeout: int = 1) -> Optional[canmessage.CANMessage]:
         """Receive message from CAN bus."""
-        # try:
-        #     msg = self._bus.recv(timeout)
-        # except can.CanError:
-        #     msg = None
-        #     if self._bus:
-        #         log.error("Error while waiting for recv from CAN", exc_info=True)
-        #     else:
-        #         # This is expected if we are shutting down
-        #         log.debug("Exception received during shutdown")
-
-        # if msg:
-        #     canmsg = canmessage.CANMessage(msg)
-        #     return canmsg
-        # return None
+     
         try:
             rcv_can_msgs = receive_can_data(self._dev_ch2)
             i = 0
-            print("DATA TYPE: ID datatypes: %s   -- Data: %s", type(rcv_can_msgs[i].frame.can_id), type(rcv_can_msgs[i].frame.data[0]))
-            log.info("Receive CAN message from USB CAN: %s from channel: %s", rcv_can_msgs, self._dev_ch2)
+            log.info("DATA TYPE: ID datatypes: %s   -- Data: %s", type(rcv_can_msgs[i].frame.can_id), type(rcv_can_msgs[i].frame.data[0]))
+            log.info("Receive CAN message from USB CAN: ID %s Data: %s", rcv_can_msgs[i].frame.can_id, rcv_can_msgs[i].frame.data[0])
         except can.CanError:
             rcv_can_msgs = None  
             if self._dev_ch2:
@@ -356,11 +374,11 @@ class CANClient:
                 # This is expected if we are shutting down 
                 log.debug("Exception received during shutdown")
                 
-
+        i = 0
         if rcv_can_msgs:
             canmsg_format = can.Message(timestamp=rcv_can_msgs[i].timestamp, arbitration_id=rcv_can_msgs[i].frame.can_id, data=rcv_can_msgs[i].frame.data)
             canmsg = canmessage.CANMessage(canmsg_format)
-            print(f"Convert to CAN msg STRUCT: [ID] {canmsg.get_arbitration_id()} - [data] {canmsg.get_data()}")
+            log.info("Type ID: %s - Type Data: %s", type(canmsg.get_arbitration_id()), type(canmsg.get_data()))
             log.info("Convert to CAN msg STRUCT: [ID] %s - [data] %s", canmsg.get_arbitration_id(), canmsg.get_data())
             return canmsg
         return None
@@ -384,13 +402,20 @@ class CANClient:
 
     def send(self, arbitration_id, data):
         """Write message to CAN bus."""
+        # Version with odler usb - sendcan
         msg = can.Message(arbitration_id=arbitration_id, data=data)
+        data_len = min(len(msg.data), 8)
+        c_data = ((c_ubyte * 8)(*[0] * 8))
+
+        for i in range(data_len):
+            c_data[i] = msg.data[i]
+        
         try:
-            self._bus.send(msg)
-            send_canfd_data(dev_ch2=self._dev_ch2, can_id=msg.arbitration_id, can_data=msg.data)
+            # self._bus.send(msg)
+            # send_canfd_data(dev_ch2=self._dev_ch2, can_id=msg.arbitration_id, can_data=msg.data)
+            send_can_data(dev_ch1=self._dev_ch2, can_id=msg.arbitration_id, can_data=c_data)
             log.info("Send CAN msg: %s, %s", msg.arbitration_id, msg.data)
             # if log.isEnabledFor(logging.DEBUG):
             #     log.debug("Sent message [channel: %s]: %s", self._bus.channel_info, msg)
         except can.CanError:
             log.error("Failed to send message via CAN bus")
-

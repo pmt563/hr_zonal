@@ -104,6 +104,7 @@ class DatabrokerClientWrapper(clientwrapper.ClientWrapper):
                  root_certificates=root_path,
                  tls_server_name=self._tls_server_name
             ))
+        
         self._grpc_client.authorize(token=self._token, **self._rpc_kwargs)
         self._grpc_client.channel.subscribe(
                 lambda connectivity: self.on_broker_connectivity_change(connectivity),
@@ -127,6 +128,7 @@ class DatabrokerClientWrapper(clientwrapper.ClientWrapper):
             self._connected = False
 
     def is_connected(self) -> bool:
+        log.info("Check if connected to data broker")
         return self._connected
 
     def is_signal_defined(self, vss_name: str) -> bool:
@@ -136,6 +138,7 @@ class DatabrokerClientWrapper(clientwrapper.ClientWrapper):
         The arguments data_type and description are kept for that purpose.
         Returns True if check succeeds.
         """
+        log.info("Check if the signal is registered. If not log an error. In the future this method may try register signals that are not yet registered. The arguments data_type and description are kept for that purpose. Returns True if check succeeds.")
         if self._grpc_client is None:
             log.warning("is_signal_defined called before client has been started")
             return False
@@ -166,6 +169,7 @@ class DatabrokerClientWrapper(clientwrapper.ClientWrapper):
         Like an a bool VSS signal both be fed as a Python bool and a string representing json true/false value
         (possibly with correct case)
         """
+        log.info("Update datapoint. Supported format for value is still a bit unclear/undefined. Like an a bool VSS signal both be fed as a Python bool and a string representing json true/false value (possibly with correct case)")
         if self._grpc_client is None:
             log.warning("update_datapoint called before client has been started")
             return False
@@ -201,13 +205,14 @@ class DatabrokerClientWrapper(clientwrapper.ClientWrapper):
 
     async def subscribe(self, vss_names: List[str], callback):
         """Create a subscription and invoke the callback when data received."""
+        log.info("Create a subscription and invoke the callback when data received")
         entries: List[SubscribeEntry] = []
         for name in vss_names:
             # Always subscribe to target
             subscribe_entry = SubscribeEntry(name, View.FIELDS, [Field.ACTUATOR_TARGET])
-            log.info("Subscribe entry: %s", subscribe_entry)
+            log.info("Subscribe ACTUATOR entry: %s", subscribe_entry)
             entries.append(subscribe_entry)
-
+        log.info("Subscribing to entries: %s", entries)
         # If there is a path VSSClient will request a secure connection
         if self._tls and self._root_ca_path:
             root_path: Optional[Path] = Path(self._root_ca_path)

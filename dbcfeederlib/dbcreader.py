@@ -43,6 +43,7 @@ class DBCReader(canreader.CanReader):
             msg = self._canclient.recv(timeout=1)
             if msg is not None:
                 log.debug("Processing CAN message with frame ID %#x", msg.get_arbitration_id())
+                log.debug("Type of ID: %s - data:%s", type(msg.get_arbitration_id()), type(msg.get_data()))
                 self._process_can_message(msg.get_arbitration_id(), msg.get_data())
         log.info("Stopped receiving CAN messages from bus")
 
@@ -50,6 +51,10 @@ class DBCReader(canreader.CanReader):
         self._canclient = CANClient(**self._can_kwargs)
         rx_thread = threading.Thread(target=self._rx_worker)
         rx_thread.start()
+        log.info("[_DBC_reader.rx_thread] Started CAN bus listener thread %s", rx_thread.name)
+        log.info("Thread id: %s", rx_thread.ident)
 
     def _stop_can_bus_listener(self):
         self._canclient.stop()
+        log.info("Stopped CAN bus listener thread %s", threading.current_thread().name)
+

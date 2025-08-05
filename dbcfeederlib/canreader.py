@@ -65,14 +65,17 @@ class CanReader(ABC):
         """
         Start listening to CAN bus.
         """
+        log.info("Start listening to CAN bus")
         pass
 
     def start(self):
         """
         Start processing of messages.
         """
+        log.info("Start CAN reader")
         self._running = True
         self._start_can_bus_listener()
+        log.info("Started CAN bus listener on %s", self._can_kwargs["channel"])
         if self._can_player is not None:
             self._can_player.start()
 
@@ -81,12 +84,14 @@ class CanReader(ABC):
         """
         Stop listening to CAN bus.
         """
+        log.info("Stop listening to CAN bus")
         pass
 
     def stop(self):
         if self._can_player is not None:
             self._can_player.stop()
         self._running = False
+        log.info("Stopping CAN bus listener on %s", self._can_kwargs["channel"])
         self._stop_can_bus_listener()
 
     def _process_can_message(self, frame_id: int, data: Any):
@@ -96,7 +101,7 @@ class CanReader(ABC):
             if message_def is not None:
                 decode = message_def.decode(bytes(data), allow_truncated=True, decode_containers=True)
                 if log.isEnabledFor(logging.DEBUG):
-                    log.debug("Decoded message: %s", str(decode))
+                    log.info("[CANReader._process_can_messages] Decoded message: %s", str(decode))
                 rx_time = time.time()
 
                 if isinstance(decode, dict):
@@ -113,6 +118,8 @@ class CanReader(ABC):
             log.warning("Error processing CAN message with frame ID: %#x", frame_id, exc_info=True)
 
     def _handle_decoded_frame(self, message_def: cantools.database.Message, decoded: SignalMappingType, rx_time: float):
+        
+        log.info("Handling decoded frame for message: %s", message_def.name)
         for signal_name, raw_value in decoded.items():  # type: ignore
             signal: cantools.database.Signal = message_def.get_signal_by_name(signal_name)
             # LOGS WHEN DEVELOPMENT PHASE
@@ -137,6 +144,7 @@ class CanReader(ABC):
                         signal_name, signal.maximum, raw_value
                     )
                     continue
+            log.info("DBC to VSS mapping for signal %s: %s", signal_name, self._mapper.get_dbc2vss_mappings(signal_name))
             for signal_mapping in self._mapper.get_dbc2vss_mappings(signal_name):
 
                 if signal_mapping.time_condition_fulfilled(rx_time):
@@ -145,6 +153,8 @@ class CanReader(ABC):
                         signal_mapping.vss_name, signal_name, raw_value
                     )
                     self._queue.put(VSSObservation(
+                        signal_name, signal_mapping.vss_name, raw_value, rx_time))
+                    log.info("Put VSS observation: %s", VSSObservation(
                         signal_name, signal_mapping.vss_name, raw_value, rx_time))
                 else:
                     log.debug(
