@@ -9,10 +9,29 @@ import sys
 import struct
 import typing
 
+
+# from concurrent.futures import ThreadPoolExecutor
+
+cur_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+print(f"canclient current dir: {cur_path}")
+import sys
+sys.path.append(cur_path)
+from dbcfeederlib import canmessage
+
 log = logging.getLogger(__name__)
+log.info(f"Systems path of {__name__}: {cur_path}")
 
 # Lấy đường dẫn tuyệt đối tới file .so
-so_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'libcontrolcanfd.so'))
+#so_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'libcontrolcanfd.so'))
+def get_library_path():
+    if getattr(sys, 'frozen', False):  # Running in PyInstaller
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(__file__)
+    return os.path.abspath(os.path.join(base_path, 'dbcfeederlib', 'libcontrolcanfd.so'))
+so_path = get_library_path()
+
+
 VCI_USBCAN2 = 41
 STATUS_OK = 1
 INVALID_DEVICE_HANDLE  = 0
@@ -209,15 +228,8 @@ def receive_canfd_data(dev_ch2):
             print(f"[{i}]:ts:{rcv_canfd_msgs[i].timestamp}, id:{rcv_canfd_msgs[i].frame.can_id}, len:{rcv_canfd_msgs[i].frame.len}, "
                   f"eff:{rcv_canfd_msgs[i].frame.eff}, rtr:{rcv_canfd_msgs[i].frame.rtr}, esi:{rcv_canfd_msgs[i].frame.esi}, "
                   f"brs:{rcv_canfd_msgs[i].frame.brs}, data:{' '.join(str(rcv_canfd_msgs[i].frame.data[j]) for j in range(rcv_canfd_msgs[i].frame.len))}")
-# IsElectricalPowertrainEngaged
+
 def send_can_data(dev_ch1, can_id, can_data):
-    # if type(data)==str():
-    #     transmit_can_num = len(data)
-    # else:
-    #     transmit_can_num = data
-    # print(type(data)==str())
-    # print(type(transmit_can_num))
-    # print(data, threshold)
     datalength = 5
     transmit_can_num = datalength*2
     can_msgs = (ZCAN_Transmit_Data * transmit_can_num)()
@@ -229,27 +241,24 @@ def send_can_data(dev_ch1, can_id, can_data):
         can_msgs[i].frame.can_id  = can_id
         can_msgs[i].frame.can_dlc = datalength
         for j in range(can_msgs[i].frame.can_dlc):
-            # can_msgs[i].frame.data[j] = j
-            ### Begin Byte[i]
             can_msgs[i].frame.data[j] = can_data[j]
 
     ret = canDLL.ZCAN_Transmit(dev_ch1, can_msgs, 1)
     print(f"\nCAN0 Transmit CAN Num: {ret} {transmit_can_num}")
 
 def receive_can_data(dev_ch2):
-    while True:
+    ret = canDLL.ZCAN_GetReceiveNum(dev_ch2, TYPE_CAN)
+    while ret <= 0:
+        time.sleep(0.01)  # Add a small delay to avoid busy-waiting
         ret = canDLL.ZCAN_GetReceiveNum(dev_ch2, TYPE_CAN)
-        while ret <= 0:
-            time.sleep(0.01)  # Add a small delay to avoid busy-waiting
-            ret = canDLL.ZCAN_GetReceiveNum(dev_ch2, TYPE_CAN)
-        if ret > 0:
-            rcv_can_msgs = (ZCAN_Receive_Data * ret)()
-            num = canDLL.ZCAN_Receive(dev_ch2, byref(rcv_can_msgs), ret, -1)
-            print(f"CAN1 Received CAN NUM: {num}.")
-            for i in range(num):
-                print(f"[{i}]:ts:{rcv_can_msgs[i].timestamp}, id:{rcv_can_msgs[i].frame.can_id}, len:{rcv_can_msgs[i].frame.can_dlc}, "
-                    f"eff:{rcv_can_msgs[i].frame.eff}, rtr:{rcv_can_msgs[i].frame.rtr}, "
-                    f"data:{' '.join(str(rcv_can_msgs[i].frame.data[j]) for j in range(rcv_can_msgs[i].frame.can_dlc))}")
+    if ret > 0:
+        rcv_can_msgs = (ZCAN_Receive_Data * ret)()
+        num = canDLL.ZCAN_Receive(dev_ch2, byref(rcv_can_msgs), ret, -1)
+        print(f"CAN1 Received CAN NUM: {num}.")
+        for i in range(num):
+            print(f"[{i}]:ts:{rcv_can_msgs[i].timestamp}, id:{rcv_can_msgs[i].frame.can_id}, len:{rcv_can_msgs[i].frame.can_dlc}, "
+                f"eff:{rcv_can_msgs[i].frame.eff}, rtr:{rcv_can_msgs[i].frame.rtr}, "
+                f"data:{' '.join(str(rcv_can_msgs[i].frame.data[j]) for j in range(rcv_can_msgs[i].frame.can_dlc))}")
         return rcv_can_msgs
 
 def close_device(dev_ch1, dev_ch2, device_handle):
@@ -265,8 +274,6 @@ def close_device(dev_ch1, dev_ch2, device_handle):
     if ret != STATUS_OK:
         print("Close Device failed!")
     print("Close Device OK!")
-
-
 
 class CANMessage:
     def __init__(self, msg: can.Message):
@@ -293,99 +300,67 @@ def send_a(dev_ch, arbitration_id, data):
     except can.CanError:
         print("Failed to send message via CAN bus")
 
-device_handle = open_device()
-set_baud_rate(device_handle)
-configure_canfd_mode(device_handle)
-    
-dev_ch1 = init_channel(device_handle, 0)
-start_channel(dev_ch1)
-    
-dev_ch2 = init_channel(device_handle, 1)
-configure_filter(dev_ch2)
-start_channel(dev_ch2)
-    # executor = ThreadPoolExecutor(3)
-
-
 class CANClient:
-
+    """
+    Wrapper class to hide dependency to CAN package.
+    Reason is to make it simple to replace the CAN package dependency with something else if your KUKSA.val
+    integration cannot interact directly with CAN, but rather interacts with some custom CAN solution/middleware.
+    """
 
     def __init__(self, *args, **kwargs):
+        # pylint: disable=abstract-class-instantiated
+        # self._bus = can.interface.Bus(*args, **kwargs)
         log.info("Start init CAN USB Client")
-        '''
-            device_handle = open_device()
-    set_baud_rate(device_handle)
-    configure_canfd_mode(device_handle)
-    
-    dev_ch1 = init_channel(device_handle, 0)
-    start_channel(dev_ch1)
-    
-    dev_ch2 = init_channel(device_handle, 1)
-    configure_filter(dev_ch2)
-    start_channel(dev_ch2)
-    # executor = ThreadPoolExecutor(3)
+        # self._device_handle = open_device()
 
+        
+        # set_baud_rate(self._device_handle)
+        # configure_canfd_mode(self._device_handle)
 
-    send(dev_ch=dev_ch2,arbitration_id=CAN_msg.get_arbitration_id(), data=CAN_msg.get_data())
-    print("Send CAN msg: %s, %s", CAN_msg.get_arbitration_id(), CAN_msg.get_data())
-        '''
+        # self._dev_ch2 = init_channel(self._device_handle, 1)  # CAN2 for receiving
+        # self._dev_ch1 = init_channel(self._device_handle, 0)  # CAN1 for testing
+        # configure_filter(self._dev_ch2)
+        # start_channel(self._dev_ch2)
+        self.device_handle = open_device()
+        set_baud_rate(self.device_handle)
+        configure_canfd_mode(self.device_handle)
         
-        # self.device_handle = open_device()
-        # set_baud_rate(self.device_handle)
-        # configure_canfd_mode(self.device_handle)
+        self.dev_ch1 = init_channel(self.device_handle, 0)
+        start_channel(self.dev_ch1)
         
-        # self.dev_ch1 = init_channel(self.device_handle, 0)
-        # start_channel(self.dev_ch1)
-        
-        # self.dev_ch2 = init_channel(self.device_handle, 1)
-        # configure_filter(self.dev_ch2)
-        # start_channel(self.dev_ch2)
+        self.dev_ch2 = init_channel(self.device_handle, 1)
+        configure_filter(self.dev_ch2)
+        start_channel(self.dev_ch2)
             
 
     def stop(self):
         """Shut down CAN bus."""
         # self._bus.shutdown()
-        close_device(dev_ch1=dev_ch1, dev_ch2=dev_ch2, device_handle=device_handle)
+        close_device(dev_ch1=self.dev_ch1, dev_ch2=self.dev_ch2, device_handle=self.device_handle)
         log.info("Close USB CAN !!!")
 
 
-    def recv(self, timeout: int = 1) -> Optional[CANMessage]:
+    def recv(self, timeout: int = 1) -> Optional[canmessage.CANMessage]:
         """Receive message from CAN bus."""
         print(timeout)
         try:
-            rcv_can_msgs = receive_can_data(dev_ch2)
+            rcv_can_msgs = receive_can_data(self.dev_ch2)
             i = 0
             log.info("DATA TYPE: ID datatypes: %s   -- Data: %s", type(rcv_can_msgs[i].frame.can_id), type(rcv_can_msgs[i].frame.data[0]))
             log.info("Receive CAN message from USB CAN: ID %s Data: %s", rcv_can_msgs[i].frame.can_id, rcv_can_msgs[i].frame.data[0])
         except can.CanError:
             rcv_can_msgs = None  
-            if dev_ch2:
+            if self._dev_ch2:
                 log.error("Error while waiting for recv from CAN", exc_info=True)
             else:
                 # This is expected if we are shutting down 
                 log.debug("Exception received during shutdown")
-                
-        i = 0
-        if rcv_can_msgs:
-            canmsg_format = can.Message(timestamp=rcv_can_msgs[i].timestamp, arbitration_id=rcv_can_msgs[i].frame.can_id, data=rcv_can_msgs[i].frame.data)
-            canmsg = CANMessage(canmsg_format)
-            log.info("Type ID: %s - Type Data: %s", type(canmsg.get_arbitration_id()), type(canmsg.get_data()))
-            log.info("Convert to CAN msg STRUCT: [ID] %s - [data] %s", canmsg.get_arbitration_id(), canmsg.get_data())
-            return canmsg
-        return None
 
 
 
     def send(self, arbitration_id, data):
         """Write message to CAN bus."""
-        """
-            can_data = bytearray([0x02, 0x00, 0x00, 0x00, 0x00])
-    can_id = 1281
-    can_msg = can.Message(arbitration_id=can_id, data=can_data)
-    CAN_msg = CANMessage(can_msg)
-
-
-    send_can_data(dev_ch1=dev_ch2, can_id = CAN_msg.get_arbitration_id(), can_data = CAN_msg.get_data())
-        """
+        # Version with odler usb - sendcan
         in_id = arbitration_id
         in_data = data
         log.info("[before send] Type of ID: %s - Type Data: %s", type(in_id), type(in_data))
@@ -394,10 +369,10 @@ class CANClient:
         msg = can.Message(arbitration_id=in_id, data=in_data)
         log.info("[After format to can.Message] Type of ID: %s - Type Data: %s", type(msg.arbitration_id), type(msg.data))
         CAN_msg = CANMessage(msg)
-        send_can_data(dev_ch1=dev_ch2, can_id = CAN_msg.get_arbitration_id(), can_data = CAN_msg.get_data())
-        send_a(dev_ch=dev_ch2,arbitration_id=CAN_msg.get_arbitration_id(), data=CAN_msg.get_data())
-        # log.info("[After format to CANMessage] Type of ID: %s - Type Data: %s", type(CAN_msg.get_arbitration_id()), type(CAN_msg.get_data()))
-        # log.info("[After format to CANMessage] ID: %s - Data: %s", CAN_msg.get_arbitration_id(), CAN_msg.get_data())
+        send_a(dev_ch=self.dev_ch2,arbitration_id=CAN_msg.get_arbitration_id(), data=CAN_msg.get_data())
+        
+        log.info("[After format to CANMessage] Type of ID: %s - Type Data: %s", type(CAN_msg.get_arbitration_id()), type(CAN_msg.get_data()))
+        log.info("[After format to CANMessage] ID: %s - Data: %s", CAN_msg.get_arbitration_id(), CAN_msg.get_data())
 
         # try:
         #     send_a(dev_ch=self.dev_ch2,arbitration_id=CAN_msg.get_arbitration_id(), data=CAN_msg.get_data())

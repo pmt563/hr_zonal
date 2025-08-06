@@ -162,12 +162,21 @@ class Feeder:
             self.stop()
         else:
             log.info("Starting thread for processing VSS Data Entry changes, writing to CAN device %s", canport)
+
             # For now creating another bus
             # Maybe support different buses for downstream/upstream in the future
+            log.debug("3 = true ? self._vss2dbc_enabled: %s", self._vss2dbc_enabled)
+            log.debug("self._mapper.has_vss2dbc_mapping(): %s", self._mapper.has_vss2dbc_mapping())
+            log.debug("self._kuksa_client.supports_subscription(): %s", self._kuksa_client.supports_subscription())
+            self._canclient = CANClient(interface="socketcan", channel=canport, fd=can_fd)
+            '''
+            Set CAN0 abit:500000 failed! --> check
 
-            # self._canclient = CANClient(interface="socketcan", channel=canport, fd=can_fd)
-            self._canclient = CANClient()
+            '''
+            # self._canclient = CANClient(**self._can_kwargs)
 
+            # self._canclient = CANClient()
+            log.info("Create _run_transmitter thread")
             transmitter = threading.Thread(target=self._run_transmitter)
             transmitter.start()
             threads.append(transmitter)
@@ -240,7 +249,10 @@ class Feeder:
                 if queue_size > queue_max_size:
                     queue_max_size = queue_size
                 vss_observation = self._dbc2vss_queue.get(timeout=1)
+                log.info("[_run_receiver] VSS Observation: %s", vss_observation)
                 vss_mapping = self._mapper.get_dbc2vss_mapping(vss_observation.dbc_name, vss_observation.vss_name)
+                log.info("[_run_receiver] Found mapping for %s to %s: %s",
+                         vss_observation.dbc_name, vss_observation.vss_name, vss_mapping)
                 value = vss_mapping.transform_value(vss_observation.raw_value)
                 if value is None:
                     log.warning(
@@ -326,7 +338,8 @@ class Feeder:
         Requests the client wrapper to start subscription.
         Checks every second if we have requested to stop reception and if so exits
         """
-        log.info("VSS need to be SUB: %s", self._mapper.get_vss2dbc_entries())
+        log.info("_run_subscriber")
+        log.info("[_run_subscribe] VSS need to be SUB: %s", self._mapper.get_vss2dbc_entries())
         asyncio.create_task(self._kuksa_client.subscribe(self._mapper.get_vss2dbc_entries(), self._vss_update))
         while self._transmit:
             await asyncio.sleep(1)
@@ -336,6 +349,7 @@ class Feeder:
         Starts subscription to selected VSS signals and on updates transmit to CAN
         """
         self._transmit = True
+        log.info("_transmit=true and run _run_subscribe()")
         asyncio.run(self._run_subscribe())
 
 

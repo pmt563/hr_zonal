@@ -134,6 +134,8 @@ def open_device():
     m_dev = canDLL.ZCAN_OpenDevice(VCI_USBCAN2, 0, 0)
     if m_dev == INVALID_DEVICE_HANDLE:
         print("Open Device failed!")
+        exit(0)
+    print("Open Device OK, device handle:0x%x." % m_dev)
     return m_dev
 
 def set_baud_rate(device_handle):
@@ -144,10 +146,12 @@ def set_baud_rate(device_handle):
         ret = canDLL.ZCAN_SetAbitBaud(device_handle, channel, baud_rate_a)
         if ret != STATUS_OK:
             print(f"Set CAN{channel} abit:{baud_rate_a} failed!")
+            exit(0)
         print(f"Set CAN{channel} abit:{baud_rate_a} OK!")
         ret = canDLL.ZCAN_SetDbitBaud(device_handle, channel, baud_rate_d)
         if ret != STATUS_OK:
             print(f"Set CAN{channel} dbit:{baud_rate_d} failed!")
+            exit(0)
         print(f"Set CAN{channel} dbit:{baud_rate_d} OK!")
 
 def configure_canfd_mode(device_handle):
@@ -155,6 +159,7 @@ def configure_canfd_mode(device_handle):
         ret = canDLL.ZCAN_SetCANFDStandard(device_handle, channel, 0)
         if ret != STATUS_OK:
             print(f"Set CAN{channel} ISO mode failed!")
+            exit(0)
         print(f"Set CAN{channel} ISO mode OK!")
 
 def init_channel(device_handle, channel):
@@ -164,6 +169,7 @@ def init_channel(device_handle, channel):
     dev_ch = canDLL.ZCAN_InitCAN(device_handle, channel, byref(init_config))
     if dev_ch == INVALID_CHANNEL_HANDLE:
         print(f"Init CAN{channel} failed!")
+        exit(0)
     print(f"Init CAN{channel} OK!")
     return dev_ch
 
@@ -171,6 +177,7 @@ def start_channel(dev_ch):
     ret = canDLL.ZCAN_StartCAN(dev_ch)
     if ret != STATUS_OK:
         print(f"Start CAN channel failed!")
+        exit(0)
     print("Start CAN channel OK!")
 
 def configure_filter(dev_ch2):
@@ -256,14 +263,17 @@ def close_device(dev_ch1, dev_ch2, device_handle):
     ret = canDLL.ZCAN_ResetCAN(dev_ch1)
     if ret != STATUS_OK:
         print("Close CAN0 failed!")
+        exit(0)
     print("Close CAN0 OK!")    
     ret = canDLL.ZCAN_ResetCAN(dev_ch2)
     if ret != STATUS_OK:
         print("Close CAN1 failed!")
+        exit(0)
     print("Close CAN1 OK!")    
     ret = canDLL.ZCAN_CloseDevice(device_handle)
     if ret != STATUS_OK:
         print("Close Device failed!")
+        exit(0)
     print("Close Device OK!")
 
 
@@ -293,19 +303,6 @@ def send_a(dev_ch, arbitration_id, data):
     except can.CanError:
         print("Failed to send message via CAN bus")
 
-device_handle = open_device()
-set_baud_rate(device_handle)
-configure_canfd_mode(device_handle)
-    
-dev_ch1 = init_channel(device_handle, 0)
-start_channel(dev_ch1)
-    
-dev_ch2 = init_channel(device_handle, 1)
-configure_filter(dev_ch2)
-start_channel(dev_ch2)
-    # executor = ThreadPoolExecutor(3)
-
-
 class CANClient:
 
 
@@ -329,22 +326,22 @@ class CANClient:
     print("Send CAN msg: %s, %s", CAN_msg.get_arbitration_id(), CAN_msg.get_data())
         '''
         
-        # self.device_handle = open_device()
-        # set_baud_rate(self.device_handle)
-        # configure_canfd_mode(self.device_handle)
+        self.device_handle = open_device()
+        set_baud_rate(self.device_handle)
+        configure_canfd_mode(self.device_handle)
         
-        # self.dev_ch1 = init_channel(self.device_handle, 0)
-        # start_channel(self.dev_ch1)
+        self.dev_ch1 = init_channel(self.device_handle, 0)
+        start_channel(self.dev_ch1)
         
-        # self.dev_ch2 = init_channel(self.device_handle, 1)
-        # configure_filter(self.dev_ch2)
-        # start_channel(self.dev_ch2)
+        self.dev_ch2 = init_channel(self.device_handle, 1)
+        configure_filter(self.dev_ch2)
+        start_channel(self.dev_ch2)
             
 
     def stop(self):
         """Shut down CAN bus."""
         # self._bus.shutdown()
-        close_device(dev_ch1=dev_ch1, dev_ch2=dev_ch2, device_handle=device_handle)
+        close_device(dev_ch1=self.dev_ch1, dev_ch2=self.dev_ch2, device_handle=self.device_handle)
         log.info("Close USB CAN !!!")
 
 
@@ -352,13 +349,13 @@ class CANClient:
         """Receive message from CAN bus."""
         print(timeout)
         try:
-            rcv_can_msgs = receive_can_data(dev_ch2)
+            rcv_can_msgs = receive_can_data(self.dev_ch2)
             i = 0
             log.info("DATA TYPE: ID datatypes: %s   -- Data: %s", type(rcv_can_msgs[i].frame.can_id), type(rcv_can_msgs[i].frame.data[0]))
             log.info("Receive CAN message from USB CAN: ID %s Data: %s", rcv_can_msgs[i].frame.can_id, rcv_can_msgs[i].frame.data[0])
         except can.CanError:
             rcv_can_msgs = None  
-            if dev_ch2:
+            if self._dev_ch2:
                 log.error("Error while waiting for recv from CAN", exc_info=True)
             else:
                 # This is expected if we are shutting down 
@@ -394,8 +391,8 @@ class CANClient:
         msg = can.Message(arbitration_id=in_id, data=in_data)
         log.info("[After format to can.Message] Type of ID: %s - Type Data: %s", type(msg.arbitration_id), type(msg.data))
         CAN_msg = CANMessage(msg)
-        send_can_data(dev_ch1=dev_ch2, can_id = CAN_msg.get_arbitration_id(), can_data = CAN_msg.get_data())
-        send_a(dev_ch=dev_ch2,arbitration_id=CAN_msg.get_arbitration_id(), data=CAN_msg.get_data())
+        send_can_data(dev_ch1=self.dev_ch2, can_id = CAN_msg.get_arbitration_id(), can_data = CAN_msg.get_data())
+        send_a(dev_ch=self.dev_ch2,arbitration_id=CAN_msg.get_arbitration_id(), data=CAN_msg.get_data())
         # log.info("[After format to CANMessage] Type of ID: %s - Type Data: %s", type(CAN_msg.get_arbitration_id()), type(CAN_msg.get_data()))
         # log.info("[After format to CANMessage] ID: %s - Data: %s", CAN_msg.get_arbitration_id(), CAN_msg.get_data())
 

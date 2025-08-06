@@ -7538,6 +7538,21 @@
               "IsElectricalPowertrainEngaged": {
                 "comment": "In some hybrid solutions it is possible to disconnect/disengage the electrical powertrain mechanically to avoid induced voltage reaching a too high level when driving at high speed.",
                 "datatype": "boolean",
+                "dbc2vss":{
+                  "signal": "SRS_ABECU_IsSleep",
+                  "transform": {
+                    "mapping": [
+                      {
+                        "from": false,
+                        "to": false
+                      },
+                      {
+                        "from": true,
+                        "to": true
+                      }
+                    ]
+                  }
+                },
                 "vss2dbc": {
                   "signal": "SRS_ABECU_IsSleep",
                   "transform":{
@@ -7560,6 +7575,21 @@
                 "comment": "The possibility to switch between low and high gear range is typically only available in heavy vehicles and off-road vehicles.",
                 "datatype": "boolean",
                 "vss2dbc": {
+                  "signal": "SRS_ABECU_IsWakeUp",
+                  "transform":{
+                    "mapping": [
+                      {
+                        "from": false,
+                        "to": false
+                      },
+                      {
+                        "from": true,
+                        "to": true
+                      }
+                    ]
+                  }
+                },
+                "dbc2vss": {
                   "signal": "SRS_ABECU_IsWakeUp",
                   "transform":{
                     "mapping": [

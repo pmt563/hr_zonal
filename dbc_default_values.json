@@ -24,5 +24,6 @@
   "VCFRONT_hpCabinLoadType" : 1,
   "SRS_ABECU_ThresholdCAN" : 0,
   "SRS_ABECU_IsSleep": false,
-  "SRS_ABECU_IsWakeUp": false
+  "SRS_ABECU_IsWakeUp": false,
+  "SRS_ABECU_IsConfig": false
 }
