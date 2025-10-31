@@ -1,18 +1,20 @@
-# -----------------------------------------------------------------------------
+# ========================================================================================
 # Multi-arch Dockerfile for hr-zonal
-# Supports: linux/amd64 and linux/arm64
-# -----------------------------------------------------------------------------
+# Supports linux/amd64 and linux/arm64
+# ========================================================================================
 
-# === Build stage ===
+# -------------------------------
+# Builder stage
+# -------------------------------
 FROM python:3.10-slim-bookworm AS builder
 
 ARG TARGETPLATFORM
 ARG TARGETARCH
 ARG BUILDPLATFORM
 
-RUN echo "-- Running on $BUILDPLATFORM, building for $TARGETPLATFORM ($TARGETARCH)"
+RUN echo "-- Running on $BUILDPLATFORM, building for $TARGETPLATFORM"
 
-# Install dependencies for build
+# Install required dependencies for build
 RUN apt-get update && apt-get install -y \
     binutils \
     git \
@@ -21,60 +23,50 @@ RUN apt-get update && apt-get install -y \
     zlib1g \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install Python build tools
 RUN pip install --upgrade --no-cache-dir pip build pyinstaller
 
-# Copy requirements and install
 COPY requirements.txt /
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the full project after dependencies (for better layer caching)
+# Copy project files
 COPY . /
+
+# Copy required library explicitly
 COPY ./dbcfeederlib/libcontrolcanfd.so ./dbcfeederlib/libcontrolcanfd.so
 
-# Build the binary using PyInstaller
-RUN pyinstaller \
-    --collect-data kuksa_client \
+# Build executable
+RUN pyinstaller --collect-data kuksa_client \
     --hidden-import can.interfaces.socketcan \
     --add-binary ./dbcfeederlib/libcontrolcanfd.so:dbcfeederlib \
     --clean -F -s dbcfeeder.py
 
-# Prepare runtime data
-WORKDIR /dist
+# Copy runtime data
 WORKDIR /data
 COPY ./config/* ./config/
 COPY ./mapping/ ./mapping/
 COPY ./*.dbc ./candump*.log ./*.json ./ 
 COPY ./HRN.dbc ./HRN.dbc 
 
-# Copy linker file dynamically depending on architecture
-# Copy runtime libs from builder depending on architecture
+# Copy linker depending on target arch
 RUN if [ "$TARGETARCH" = "arm64" ]; then \
-      cp /usr/lib/aarch64-linux-gnu/libz.so.1 /lib/ && \
-      cp /usr/lib/aarch64-linux-gnu/libstdc++.so.6 /lib/ && \
-      cp /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 /lib/ && \
-      cp /usr/lib/aarch64-linux-gnu/libc.so.6 /lib/ && \
-      cp /usr/lib/aarch64-linux-gnu/libm.so.6 /lib/ && \
-      cp /dist/ld-linux-aarch64.so.1 /lib/; \
+      ld_path=$(find / -name ld-linux-aarch64.so.1 2>/dev/null | head -n 1) && cp "$ld_path" /dist/ld-linux-aarch64.so.1; \
     else \
-      cp /usr/lib/x86_64-linux-gnu/libz.so.1 /lib/ && \
-      cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /lib/ && \
-      cp /usr/lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/ && \
-      cp /usr/lib/x86_64-linux-gnu/libc.so.6 /lib/ && \
-      cp /usr/lib/x86_64-linux-gnu/libm.so.6 /lib/ && \
-      cp /dist/ld-linux-x86-64.so.2 /lib/; \
+      ld_path=$(find / -name ld-linux-x86-64.so.2 2>/dev/null | head -n 1) && cp "$ld_path" /dist/ld-linux-x86-64.so.2; \
     fi
 
-# === Runtime stage ===
+# -------------------------------
+# Runtime stage
+# -------------------------------
 FROM gcr.io/distroless/base-debian12
 
-# Copy runtime libs and linker from builder depending on architecture
-ARG TARGETARCH
+WORKDIR /dist
 
-# Copy shared libraries and linker dynamically from builder
-RUN mkdir -p /lib
+# Copy binaries and data
+COPY --from=builder /dist/* ./
+COPY --from=builder /data/ ./
 
-# For ARM64
+# Copy shared libraries from builder for both architectures
+# (COPY --from will only include what exists for the architecture being built)
 COPY --from=builder /usr/lib/aarch64-linux-gnu/libz.so.1 /lib/  
 COPY --from=builder /usr/lib/aarch64-linux-gnu/libstdc++.so.6 /lib/  
 COPY --from=builder /usr/lib/aarch64-linux-gnu/libgcc_s.so.1 /lib/  
@@ -82,17 +74,17 @@ COPY --from=builder /usr/lib/aarch64-linux-gnu/libc.so.6 /lib/
 COPY --from=builder /usr/lib/aarch64-linux-gnu/libm.so.6 /lib/  
 COPY --from=builder /dist/ld-linux-aarch64.so.1 /lib/  
 
-# For AMD64
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libz.so.1 /lib/  
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /lib/  
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/  
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libc.so.6 /lib/  
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libm.so.6 /lib/  
-# Environment setup
+COPY --from=builder /dist/ld-linux-x86-64.so.2 /lib/  
+# Environment
 ENV PATH="/dist:$PATH"
 ENV LOG_LEVEL="info"
 ENV VDB_ADDRESS="localhost:55555"
-ENV VEHICLEDATABROKER_DAPR_APP_ID=vehicledatabroker
+ENV VEHICLEDATABROKER_DAPR_APP_ID=vehicledatabroker"
 ENV PYTHONUNBUFFERED=yes
 
 ENTRYPOINT ["./dbcfeeder"]
