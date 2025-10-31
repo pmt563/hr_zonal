@@ -1,0 +1,91 @@
+# -----------------------------------------------------------------------------
+# Multi-arch Dockerfile for hr-zonal
+# Supports: linux/amd64 and linux/arm64
+# -----------------------------------------------------------------------------
+
+# === Build stage ===
+FROM python:3.10-slim-bookworm AS builder
+
+ARG TARGETPLATFORM
+ARG TARGETARCH
+ARG BUILDPLATFORM
+
+RUN echo "-- Running on $BUILDPLATFORM, building for $TARGETPLATFORM ($TARGETARCH)"
+
+# Install dependencies for build
+RUN apt-get update && apt-get install -y \
+    binutils \
+    git \
+    gcc \
+    libc6 \
+    zlib1g \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip and install Python build tools
+RUN pip install --upgrade --no-cache-dir pip build pyinstaller
+
+# Copy requirements and install
+COPY requirements.txt /
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the full project after dependencies (for better layer caching)
+COPY . /
+COPY ./dbcfeederlib/libcontrolcanfd.so ./dbcfeederlib/libcontrolcanfd.so
+
+# Build the binary using PyInstaller
+RUN pyinstaller \
+    --collect-data kuksa_client \
+    --hidden-import can.interfaces.socketcan \
+    --add-binary ./dbcfeederlib/libcontrolcanfd.so:dbcfeederlib \
+    --clean -F -s dbcfeeder.py
+
+# Prepare runtime data
+WORKDIR /dist
+WORKDIR /data
+COPY ./config/* ./config/
+COPY ./mapping/ ./mapping/
+COPY ./*.dbc ./candump*.log ./*.json ./ 
+COPY ./HRN.dbc ./HRN.dbc 
+
+# Copy linker file dynamically depending on architecture
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      ld_path=$(find / -name ld-linux-aarch64.so.1 2>/dev/null | head -n 1); \
+      cp "$ld_path" /dist/ld-linux-aarch64.so.1; \
+    else \
+      ld_path=$(find / -name ld-linux-x86-64.so.2 2>/dev/null | head -n 1); \
+      cp "$ld_path" /dist/ld-linux-x86-64.so.2; \
+    fi
+
+# === Runtime stage ===
+FROM gcr.io/distroless/base-debian12
+
+ARG TARGETARCH
+WORKDIR /dist
+
+# Copy built artifacts
+COPY --from=builder /dist/* ./
+COPY --from=builder /data/ ./data/
+
+# Determine correct lib directory based on architecture
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      LIBDIR="/usr/lib/aarch64-linux-gnu"; \
+      LINKER="ld-linux-aarch64.so.1"; \
+    else \
+      LIBDIR="/usr/lib/x86_64-linux-gnu"; \
+      LINKER="ld-linux-x86-64.so.2"; \
+    fi && \
+    cp $LIBDIR/libz.so.1 /lib/ && \
+    cp $LIBDIR/libstdc++.so.6 /lib/ && \
+    cp $LIBDIR/libgcc_s.so.1 /lib/ && \
+    cp $LIBDIR/libc.so.6 /lib/ && \
+    cp $LIBDIR/libm.so.6 /lib/ && \
+    cp /dist/$LINKER /lib/
+
+# Environment setup
+ENV PATH="/dist:$PATH"
+ENV LOG_LEVEL="info"
+ENV VDB_ADDRESS="localhost:55555"
+ENV VEHICLEDATABROKER_DAPR_APP_ID=vehicledatabroker
+ENV PYTHONUNBUFFERED=yes
+
+ENTRYPOINT ["./dbcfeeder"]
