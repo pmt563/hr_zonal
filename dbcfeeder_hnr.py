@@ -47,7 +47,6 @@ from dbcfeederlib import dbcreader
 from dbcfeederlib import j1939reader
 from dbcfeederlib import databrokerclientwrapper
 from dbcfeederlib import serverclientwrapper
-from dbcfeederlib import loggingclientwrapper
 from dbcfeederlib import clientwrapper
 from dbcfeederlib import elm2canbridge
 
@@ -75,7 +74,7 @@ class ServerType(str, enum.Enum):
     """Enum class to indicate type of server dbcfeeder is connecting to"""
     KUKSA_VAL_SERVER = 'kuksa_val_server'
     KUKSA_DATABROKER = 'kuksa_databroker'
-    OFFLINE_LOGGING = 'offline_logging'
+
 
 class Feeder:
     """
@@ -401,8 +400,6 @@ def _get_kuksa_val_client(command_line_parser: argparse.Namespace,
         client: clientwrapper.ClientWrapper = serverclientwrapper.ServerClientWrapper()
     elif server_type is ServerType.KUKSA_DATABROKER:
         client = databrokerclientwrapper.DatabrokerClientWrapper()
-    elif server_type is ServerType.OFFLINE_LOGGING:
-        client = loggingclientwrapper.LoggingClientWrapper()
     else:
         raise ValueError(f"Unsupported server type: {server_type}")
 
@@ -441,18 +438,7 @@ def _get_kuksa_val_client(command_line_parser: argparse.Namespace,
 
 
 def _get_command_line_args_parser() -> argparse.ArgumentParser:
-
-
     parser = argparse.ArgumentParser(description="dbcfeeder")
-    # Argument to disable use of Data broker
-    parser.add_argument(
-        "--no-broker",
-        action="store_true",
-        default=False,
-        help="Don't use Data broker",
-    )
-    # end Argument to disable use of Data broker
-
     parser.add_argument("--config", metavar="FILE", help="The file to read configuration properties from")
     parser.add_argument(
         "--dbcfile", metavar="FILE", help="A (comma sparated) list of DBC files to read message definitions from."
@@ -678,4 +664,3 @@ if __name__ == "__main__":
     # os.chdir(os.path.dirname(__file__))
 
     sys.exit(main(sys.argv))
-    

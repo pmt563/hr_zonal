@@ -1,0 +1,63 @@
+classDiagram
+    class ClientWrapper {
+        <<Abstract>>
+        -_ip: str
+        -_port: int
+        -_token_path: str
+        -_tls: bool
+        -_registered: bool
+        -_root_ca_path: Optional[str]
+        -_tls_server_name: Optional[str]
+        +__init__(ip: str, port: int, token_path: str, tls: bool)
+        +_do_init()
+        +set_ip(ip: str)
+        +set_port(port: int)
+        +set_tls(tls: bool)
+        +get_tls() bool
+        +set_root_ca_path(path: str)
+        +set_tls_server_name(name: str)
+        +set_token_path(token_path: str)
+        +start()*
+        +is_connected() bool*
+        +is_signal_defined(vss_name: str) bool*
+        +update_datapoint(name: str, value: Any) bool*
+        +stop()*
+        +supports_subscription() bool*
+        +subscribe(vss_names: List[str], callback)*
+    }
+
+    class DatabrokerClientWrapper {
+        -_grpc_client: VSSClient
+        -_name_to_type: Dict[str, DataType]
+        -_rpc_kwargs: Dict[str, str]
+        -_connected: bool
+        -_exit_stack: contextlib.ExitStack
+        -_token: str
+        +__init__(ip: str, port: int, token_path: str, tls: bool)
+        +_do_init()
+        +start()
+        +on_broker_connectivity_change(connectivity)
+        +is_connected() bool
+        +is_signal_defined(vss_name: str) bool
+        +update_datapoint(name: str, value: Any) bool
+        +stop()
+        +supports_subscription() bool
+        +subscribe(vss_names: List[str], callback)
+    }
+
+    class VSSClient {
+        <<External>>
+        +authorize(token, **kwargs)
+        +get_metadata(vss_names, **kwargs)
+        +set(updates, **kwargs)
+        +subscribe(entries)
+    }
+
+    class grpc {
+        <<External>>
+        ChannelConnectivity
+    }
+
+    ClientWrapper <|-- DatabrokerClientWrapper : inheritance
+    DatabrokerClientWrapper --> VSSClient : composition
+    DatabrokerClientWrapper --> grpc : dependency
